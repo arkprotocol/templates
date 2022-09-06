@@ -28,9 +28,24 @@ This is Ark Protocol’s long term mission. We know it takes time and there is a
 
 Ark Protocol does not only serve the crypto and NFT community. From the beginning we will serve for higher human goals. This is why Chauncy St John is also a team member of Ark Protocol. Starting with our first and future funds and perpetual income we will donate a certain amount to Angel Protocol - because sharing is caring!
 
-# Environment Setup
+# Development Environment
+
+## Chains: Juno and Stargaze
 
 TODO: https://github.com/arkprotocol/arkprotocol/issues/3
+
+## Cargo workspace
+
+There is a main Cargo.toml file in root folder. It defines a Cargo Workspace and include all members in contracts folder.
+
+This allows like building and testing all contracts from root folder:
+
+```bash
+$ cargo build # builds all contracts (pint and pong)
+$ cargo test # tests all contracts (pint and pong)
+$ cargo build -p ping # builds ping contract
+$ cargo test -p ping # tests ping contract
+```
 
 # Tests
 
