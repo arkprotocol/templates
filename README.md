@@ -2,6 +2,13 @@
 
 Join our [discord](https://discord.gg/fVv6Mf9Wr8) and read in “mission” and “about” channels. Also visit us on [Twitter](https://twitter.com/arkprotocol).
 
+IMPORTANT:
+(c) Ark Protocol 2022
+ALL rights reserved.
+No copies, disclosure or forward of all data or any info provided here or by the Ark Protocol team is allowed!
+In case of any doubt contact Ark Protocol on Discord or Twitter.
+
+
 ## Mission
 
 > “We from Ark Protocol believe that an NFT collection should depend solely on its project value and utilities - and must be independent of any specific blockchain.”
@@ -34,7 +41,9 @@ Ark Protocol does not only serve the crypto and NFT community. From the beginnin
 
 TODO: https://github.com/arkprotocol/arkprotocol/issues/3
 
-## Cargo workspace
+## Cargo
+
+### workspace
 
 There is a main Cargo.toml file in root folder. It defines a Cargo Workspace and include all members in contracts folder.
 
@@ -46,6 +55,36 @@ $ cargo test # tests all contracts (pint and pong)
 $ cargo build -p ping # builds ping contract
 $ cargo test -p ping # tests ping contract
 ```
+
+### Minimal Cargo Project
+
+!!! IMPORTANT NOTE !!!
+In case:
+
+- contracts provide additional examples, then please add to minimal template
+- example might be bigger it may be created in a new dedicated template project
+- always use minimal template for any kind of project
+
+For new Cargo projects please use templates/minimal.
+
+Steps for creating a new project:
+- copy minimal e.g. to contracts folder
+- rename folder
+- adjust some files (read below)
+
+These files and folders are there in minimal template:
+- examples
+  - schema.rs: remove or uncomment, then call `cargo schema` which generates JSON files in schema folder
+- src
+  - error.rs: extend with custom errors
+  - execute.rs: remove or add code
+  - helpers.rs: add helper functions here
+  - lib.rs: exports modules
+  - msg.rs: add messages here
+  - query.rs: remove or add code
+  - state.rs: remove or add code
+
+In case of changes on above files you might need to adjust Cargo.toml. There are example crates for dependencies and dev dependencies that can be commented out as needed.
 
 # Tests
 
@@ -72,4 +111,3 @@ Ethan talk on IBC during HackAtom Seoul. YouTube videos with bookmark where he s
 - [IBC demo, link plays at 2h:31m](https://www.youtube.com/watch?v=x75UobIr4qo&t=9092s)
   - [cw-ibc-demo repo](https://github.com/confio/cw-ibc-demo)
   - demo is based on ezekiiel's [cw-ibc-example repo](https://github.com/ezekiiel/cw-ibc-example)
-
