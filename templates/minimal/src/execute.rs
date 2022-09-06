@@ -1,15 +1,9 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-// use cw2::set_contract_version;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-
-/*
-const CONTRACT_NAME: &str = "crates.io:minimal";
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
- */
+use crate::msg::{ExecuteMsg, InstantiateMsg};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -30,11 +24,5 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     unimplemented!()
 }
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
-    unimplemented!()
-}
-
 #[cfg(test)]
 mod tests {}
