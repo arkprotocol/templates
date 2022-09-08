@@ -8,6 +8,7 @@ use cosmwasm_std::{
 use crate::{state::CONNECTIONS, ContractError};
 
 pub const IBC_VERSION: &str = "counter-1";
+pub const IBC_ORDER: IbcOrder = IbcOrder::Unordered;
 
 /// Handles the `OpenInit` and `OpenTry` parts of the IBC handshake.
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -85,7 +86,7 @@ pub fn validate_order_and_version(
     // We expect an unordered channel here. Ordered channels have the
     // property that if a message is lost the entire channel will stop
     // working until you start it again.
-    if channel.order != IbcOrder::Unordered {
+    if channel.order != IBC_ORDER {
         return Err(ContractError::OrderedChannel {});
     }
 
