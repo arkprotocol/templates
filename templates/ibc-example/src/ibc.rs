@@ -5,7 +5,7 @@ use cosmwasm_std::{
     IbcChannelOpenMsg, IbcOrder, IbcPacketAckMsg, IbcPacketTimeoutMsg,
 };
 
-use crate::{state::CONNECTION_COUNTS, ContractError};
+use crate::{state::CONNECTIONS, ContractError};
 
 pub const IBC_VERSION: &str = "counter-1";
 
@@ -29,7 +29,7 @@ pub fn ibc_channel_connect(
 
     // Initialize the count for this channel to zero.
     let channel = msg.channel().endpoint.channel_id.clone();
-    CONNECTION_COUNTS.save(deps.storage, channel.clone(), &0)?;
+    CONNECTIONS.save(deps.storage, channel.clone(), &true)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("method", "ibc_channel_connect")
@@ -44,7 +44,7 @@ pub fn ibc_channel_close(
 ) -> Result<IbcBasicResponse, ContractError> {
     let channel = msg.channel().endpoint.channel_id.clone();
     // Reset the state for the channel.
-    CONNECTION_COUNTS.remove(deps.storage, channel.clone());
+    CONNECTIONS.remove(deps.storage, channel.clone());
     Ok(IbcBasicResponse::new()
         .add_attribute("method", "ibc_channel_close")
         .add_attribute("channel", channel))
