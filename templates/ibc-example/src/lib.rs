@@ -5,5 +5,6 @@ pub mod ibc;
 pub mod ibc_receive;
 pub mod msg;
 pub mod state;
+pub mod tests;
 
 pub use crate::error::ContractError;
