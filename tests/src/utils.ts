@@ -1,14 +1,27 @@
 import { readFileSync } from "fs";
 
-import { AckWithMetadata, CosmWasmSigner, RelayInfo, testutils } from "@confio/relayer";
+import {
+  AckWithMetadata,
+  CosmWasmSigner,
+  RelayInfo,
+  testutils,
+} from "@confio/relayer";
 import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
 import { assert } from "@cosmjs/utils";
+import { Order } from "cosmjs-types/ibc/core/channel/v1/channel";
 
-const { fundAccount, generateMnemonic, osmosis: oldOsmo, signingCosmWasmClient, wasmd } = testutils;
+const {
+  fundAccount,
+  generateMnemonic,
+  osmosis: oldOsmo,
+  signingCosmWasmClient,
+  wasmd,
+} = testutils;
 
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
-export const IbcVersion = "simple-ica-v2";
+export const IbcVersion = "ping-1";
+export const IbcOrder = Order.ORDER_UNORDERED;
 
 export async function setupContracts(
   cosmwasm: CosmWasmSigner,
@@ -20,7 +33,12 @@ export async function setupContracts(
     const path = contracts[name];
     console.info(`Storing ${name} from ${path}...`);
     const wasm = await readFileSync(path);
-    const receipt = await cosmwasm.sign.upload(cosmwasm.senderAddress, wasm, "auto", `Upload ${name}`);
+    const receipt = await cosmwasm.sign.upload(
+      cosmwasm.senderAddress,
+      wasm,
+      "auto",
+      `Upload ${name}`
+    );
     console.debug(`Upload ${name} with CodeID: ${receipt.codeId}`);
     results[name] = receipt.codeId;
   }
@@ -53,7 +71,6 @@ export function assertAckSuccess(acks: AckWithMetadata[]) {
     if (parsed.error) {
       throw new Error(`Unexpected error in ack: ${parsed.error}`);
     }
-    console.log(parsed);
     if (!parsed.result) {
       throw new Error(`Ack result unexpectedly empty`);
     }
@@ -73,7 +90,11 @@ export function assertAckErrors(acks: AckWithMetadata[]) {
   }
 }
 
-export function assertPacketsFromA(relay: RelayInfo, count: number, success: boolean) {
+export function assertPacketsFromA(
+  relay: RelayInfo,
+  count: number,
+  success: boolean
+) {
   if (relay.packetsFromA !== count) {
     throw new Error(`Expected ${count} packets, got ${relay.packetsFromA}`);
   }
@@ -87,7 +108,11 @@ export function assertPacketsFromA(relay: RelayInfo, count: number, success: boo
   }
 }
 
-export function assertPacketsFromB(relay: RelayInfo, count: number, success: boolean) {
+export function assertPacketsFromB(
+  relay: RelayInfo,
+  count: number,
+  success: boolean
+) {
   if (relay.packetsFromB !== count) {
     throw new Error(`Expected ${count} packets, got ${relay.packetsFromB}`);
   }
@@ -101,7 +126,7 @@ export function assertPacketsFromB(relay: RelayInfo, count: number, success: boo
   }
 }
 
-export function parseAcknowledgementSuccess(ack: AckWithMetadata): unknown {
+export function parseAcknowledgementSuccess<T>(ack: AckWithMetadata): T {
   const response = JSON.parse(fromUtf8(ack.acknowledgement));
   assert(response.result);
   return JSON.parse(fromUtf8(fromBase64(response.result)));

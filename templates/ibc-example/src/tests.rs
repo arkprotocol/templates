@@ -2,22 +2,30 @@
 
 #[cfg(test)]
 mod tests {
+    use crate::ack::{self, Ack};
     use crate::contract::{execute, instantiate, query};
     use crate::ibc::{
         ibc_channel_close, ibc_channel_connect, ibc_channel_open, IBC_ORDER, IBC_VERSION,
     };
-    use crate::ibc_receive::ibc_packet_receive;
-    use crate::msg::{ExecuteMsg, GetConnectionsResponse, IbcExecuteMsg, InstantiateMsg, QueryMsg};
-    //use crate::ContractError;
+    use crate::ibc_ack::ibc_packet_ack;
+    use crate::ibc_msg::IbcPingResponse;
+    use crate::msg::GetCounterResponse;
+    use crate::{
+        ibc_msg::IbcExecuteMsg,
+        ibc_receive::ibc_packet_receive,
+        msg::{ExecuteMsg, GetConnectionsResponse, InstantiateMsg, QueryMsg},
+    };
+    use serde::Deserialize;
+    use std::convert::TryInto;
 
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_ibc_channel_close_init, mock_ibc_channel_connect_ack,
-        mock_ibc_channel_open_init, mock_ibc_channel_open_try, mock_ibc_packet_recv, mock_info,
-        MockApi, MockQuerier, MockStorage,
+        mock_ibc_channel_open_init, mock_ibc_channel_open_try, mock_ibc_packet_ack,
+        mock_ibc_packet_recv, mock_info, MockApi, MockQuerier, MockStorage,
     };
     use cosmwasm_std::{
-        from_binary, to_binary, Attribute, CosmosMsg, DepsMut, IbcMsg, IbcOrder, IbcTimeout,
-        MessageInfo, OwnedDeps, Response,
+        from_binary, from_slice, to_binary, Attribute, Binary, CosmosMsg, DepsMut,
+        IbcAcknowledgement, IbcMsg, IbcOrder, IbcTimeout, MessageInfo, OwnedDeps, Response,
     };
 
     const CREATER_ADDR: &str = "creater";
@@ -130,6 +138,8 @@ mod tests {
     fn execute_ping() {
         let (mut deps, _res, info) = setup(None, None);
 
+        connect(deps.as_mut(), TEST_CHANNEL);
+
         let msg = ExecuteMsg::Ping {
             channel: TEST_CHANNEL.to_string(),
         };
@@ -160,49 +170,57 @@ mod tests {
             })
         );
 
+        // Verify we received the ping, and answered correctly.
         let ibc_msg = IbcExecuteMsg::Ping {};
 
         let msg = mock_ibc_packet_recv(TEST_CHANNEL, &ibc_msg).unwrap();
         let res = ibc_packet_receive(deps.as_mut(), mock_env(), msg).unwrap();
 
-        connect(deps.as_mut(), TEST_CHANNEL);
-
         //Verify we got the result attr, pong.
         assert_eq!(
             res.attributes,
-            vec![
-                Attribute {
-                    key: "method".to_string(),
-                    value: "execute_ping".to_string()
-                },
-                Attribute {
-                    key: "result".to_string(),
-                    value: "pong".to_string()
-                },
-            ]
+            vec![Attribute {
+                key: "method".to_string(),
+                value: "execute_ping".to_string()
+            },]
         );
 
-        //Do custom execute expect error
-        // let err_info = mock_info("error_addr", &[]);
-        // let msg = ExecuteMsg::Custom {};
-        // let err = execute(deps.as_mut(), env, err_info, msg);
+        let ack: IbcPingResponse = Ack::parse(res.acknowledgement.clone());
 
-        // match err {
-        //     Err(ContractError::Unauthorized {}) => {}
-        //     _ => panic!("Must return unauthorized error"),
-        // }
+        assert_eq!(ack.result.as_str(), "pong");
+
+        //Verify we do the ack correctly.
+        let ack = mock_ibc_packet_ack(
+            TEST_CHANNEL,
+            &ibc_msg,
+            IbcAcknowledgement::new(res.acknowledgement),
+        )
+        .unwrap();
+        let res = ibc_packet_ack(deps.as_mut(), mock_env(), ack).unwrap();
+
+        assert_eq!(
+            res.attributes,
+            vec![Attribute {
+                key: "action".to_string(),
+                value: "ack_ping".to_string()
+            },]
+        );
+
+        //Verify that after the ack, our counter is 1 and not 0
+        let msg = QueryMsg::GetCounter {
+            channel: TEST_CHANNEL.to_string(),
+        };
+        let res = query(deps.as_ref(), mock_env(), msg).unwrap();
+        let value: GetCounterResponse = from_binary(&res).unwrap();
+
+        assert_eq!(value.count, 1);
 
         //Do custom query
         let msg = QueryMsg::GetConnections {};
         let res = query(deps.as_ref(), mock_env(), msg).unwrap();
         let value: GetConnectionsResponse = from_binary(&res).unwrap();
 
-        assert_eq!(
-            value,
-            GetConnectionsResponse {
-                connections: vec![TEST_CHANNEL.to_string()]
-            }
-        );
+        assert_eq!(value.connections, vec![TEST_CHANNEL.to_string()]);
     }
 
     #[test]

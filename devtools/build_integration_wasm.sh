@@ -10,7 +10,20 @@ SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 cd "${SCRIPT_DIR}/.."
 
 # compile all contracts
-for C in ./contracts/*/
+if [ -d "./contracts" ]
+then
+  for C in ./contracts/*/
+  do
+    echo "Compiling $(basename "$C")..."
+    (cd "$C" && RUSTFLAGS='-C link-arg=-s' cargo build --release --target wasm32-unknown-unknown --locked)
+  done
+fi
+
+# move them to the internal dir inside tests
+mkdir -p ./tests/internal
+cp ./target/wasm32-unknown-unknown/release/*.wasm ./tests/internal
+
+for C in ./templates/*/
 do
   echo "Compiling $(basename "$C")..."
   (cd "$C" && RUSTFLAGS='-C link-arg=-s' cargo build --release --target wasm32-unknown-unknown --locked)

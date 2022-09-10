@@ -2,9 +2,9 @@ use cosmwasm_std::entry_point;
 use cosmwasm_std::{from_binary, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse};
 
 use crate::{
-    ack::{ack_fail, ack_success},
+    ack::Ack,
     error::Never,
-    msg::IbcExecuteMsg,
+    ibc_msg::{IbcExecuteMsg, IbcPingResponse},
     ContractError,
 };
 
@@ -22,7 +22,7 @@ pub fn ibc_packet_receive(
         Err(error) => Ok(IbcReceiveResponse::new()
             .add_attribute("method", "ibc_packet_receive")
             .add_attribute("error", error.to_string())
-            .set_ack(ack_fail(error.to_string()))),
+            .set_ack(Ack::fail(error.to_string()))),
     }
 }
 
@@ -36,13 +36,14 @@ pub fn do_ibc_packet_receive(
     let msg: IbcExecuteMsg = from_binary(&msg.packet.data)?;
 
     match msg {
-        IbcExecuteMsg::Ping {} => execute_ping(deps),
+        IbcExecuteMsg::Ping {} => receive_ping(deps),
     }
 }
 
-pub fn execute_ping(_deps: DepsMut) -> Result<IbcReceiveResponse, ContractError> {
+pub fn receive_ping(_deps: DepsMut) -> Result<IbcReceiveResponse, ContractError> {
     Ok(IbcReceiveResponse::new()
         .add_attribute("method", "execute_ping")
-        .add_attribute("result", "pong")
-        .set_ack(ack_success()))
+        .set_ack(Ack::success_data(IbcPingResponse {
+            result: "pong".to_string(),
+        })))
 }

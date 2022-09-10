@@ -2,12 +2,15 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     DepsMut, Env, IbcBasicResponse, IbcChannel, IbcChannelCloseMsg, IbcChannelConnectMsg,
-    IbcChannelOpenMsg, IbcOrder, IbcPacketAckMsg, IbcPacketTimeoutMsg,
+    IbcChannelOpenMsg, IbcOrder, IbcPacketTimeoutMsg,
 };
 
-use crate::{state::CONNECTIONS, ContractError};
+use crate::{
+    state::{CONNECTIONS, COUNTERS},
+    ContractError,
+};
 
-pub const IBC_VERSION: &str = "counter-1";
+pub const IBC_VERSION: &str = "ping-1";
 pub const IBC_ORDER: IbcOrder = IbcOrder::Unordered;
 
 /// Handles the `OpenInit` and `OpenTry` parts of the IBC handshake.
@@ -30,7 +33,8 @@ pub fn ibc_channel_connect(
 
     // Initialize the count for this channel to zero.
     let channel = msg.channel().endpoint.channel_id.clone();
-    CONNECTIONS.save(deps.storage, channel.clone(), &true)?;
+    CONNECTIONS.save(deps.storage, &channel, &true)?;
+    COUNTERS.save(deps.storage, &channel, &0)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("method", "ibc_channel_connect")
@@ -45,25 +49,10 @@ pub fn ibc_channel_close(
 ) -> Result<IbcBasicResponse, ContractError> {
     let channel = msg.channel().endpoint.channel_id.clone();
     // Reset the state for the channel.
-    CONNECTIONS.remove(deps.storage, channel.clone());
+    CONNECTIONS.remove(deps.storage, &channel);
     Ok(IbcBasicResponse::new()
         .add_attribute("method", "ibc_channel_close")
         .add_attribute("channel", channel))
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn ibc_packet_ack(
-    _deps: DepsMut,
-    _env: Env,
-    _ack: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ContractError> {
-    // Nothing to do here. We don't keep any state about the other
-    // chain, just deliver messages so nothing to update.
-    //
-    // If we did care about how the other chain received our message
-    // we could deserialize the data field into an `Ack` and inspect
-    // it.
-    Ok(IbcBasicResponse::new().add_attribute("method", "ibc_packet_ack"))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

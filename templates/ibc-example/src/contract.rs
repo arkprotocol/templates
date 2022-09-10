@@ -6,9 +6,12 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, GetConnectionsResponse, IbcExecuteMsg, InstantiateMsg, QueryMsg};
-use crate::state::CONNECTIONS;
+use crate::{
+    error::ContractError,
+    ibc_msg::IbcExecuteMsg,
+    msg::{ExecuteMsg, GetConnectionsResponse, GetCounterResponse, InstantiateMsg, QueryMsg},
+    state::{CONNECTIONS, COUNTERS},
+};
 
 const CONTRACT_NAME: &str = "crates.io:ap-ibc-example";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -53,6 +56,7 @@ fn ping(env: Env, channel: String) -> Result<Response, ContractError> {
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetConnections {} => to_binary(&query_connections(deps)?),
+        QueryMsg::GetCounter { channel } => to_binary(&query_counter(deps, channel)?),
     }
 }
 
@@ -62,4 +66,13 @@ fn query_connections(deps: Deps) -> StdResult<GetConnectionsResponse> {
         .map(|x| x.unwrap_or_else(|_| "".to_string()))
         .collect();
     Ok(GetConnectionsResponse { connections })
+}
+
+fn query_counter(deps: Deps, channel: String) -> StdResult<GetCounterResponse> {
+    let count = COUNTERS
+        .may_load(deps.storage, &channel)
+        .unwrap_or(Some(0))
+        .unwrap_or(0);
+
+    Ok(GetCounterResponse { count })
 }
