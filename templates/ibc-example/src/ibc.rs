@@ -9,8 +9,8 @@ use crate::{
     state::{CONNECTIONS, COUNTERS},
     ContractError,
 };
-
 pub const IBC_VERSION: &str = "ping-1";
+
 pub const IBC_ORDER: IbcOrder = IbcOrder::Unordered;
 
 /// Handles the `OpenInit` and `OpenTry` parts of the IBC handshake.
@@ -50,6 +50,7 @@ pub fn ibc_channel_close(
     let channel = msg.channel().endpoint.channel_id.clone();
     // Reset the state for the channel.
     CONNECTIONS.remove(deps.storage, &channel);
+
     Ok(IbcBasicResponse::new()
         .add_attribute("method", "ibc_channel_close")
         .add_attribute("channel", channel))

@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::ack::{self, Ack};
+    use crate::ack::Ack;
     use crate::contract::{execute, instantiate, query};
     use crate::ibc::{
         ibc_channel_close, ibc_channel_connect, ibc_channel_open, IBC_ORDER, IBC_VERSION,
@@ -15,8 +15,6 @@ mod tests {
         ibc_receive::ibc_packet_receive,
         msg::{ExecuteMsg, GetConnectionsResponse, InstantiateMsg, QueryMsg},
     };
-    use serde::Deserialize;
-    use std::convert::TryInto;
 
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_ibc_channel_close_init, mock_ibc_channel_connect_ack,
@@ -24,8 +22,8 @@ mod tests {
         mock_ibc_packet_recv, mock_info, MockApi, MockQuerier, MockStorage,
     };
     use cosmwasm_std::{
-        from_binary, from_slice, to_binary, Attribute, Binary, CosmosMsg, DepsMut,
-        IbcAcknowledgement, IbcMsg, IbcOrder, IbcTimeout, MessageInfo, OwnedDeps, Response,
+        from_binary, to_binary, Attribute, CosmosMsg, DepsMut, IbcAcknowledgement, IbcMsg,
+        IbcOrder, IbcTimeout, MessageInfo, OwnedDeps, Response,
     };
 
     const CREATER_ADDR: &str = "creater";
