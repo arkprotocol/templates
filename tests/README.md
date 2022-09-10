@@ -1,6 +1,6 @@
 # ibc-tests-ics20
 
-Simple repo showing how to use ts-relayer as a library to test cw20-ics20 contract
+Simple repo showing how to use ts-relayer as a library to test ping ibc-example.
 
 ## Setup
 
@@ -32,16 +32,6 @@ npm run fix
 
 ## Testing
 
-### Build optimized contract WASM
-
-Compile the contracts for uploading.
-
-```sh
-./devtools/build_integration_wasm.sh
-```
-
-NOTE: you need to run this each time your contract changes.
-
 ### Run two chains in docker
 
 This actually runs the test codes on contracts. To do so, we need to start two blockchains in the background and then run the process. This requires that you have docker installed and running on your local machine. If you don't, please do that first before running the scripts. (Also, they only work on Linux and MacOS... sorry Windows folks, you are welcome to PR an equivalent).
@@ -60,7 +50,22 @@ Terminal 2:
 
 If those start properly, you should see a series of `executed block` messages. If they fail, check `debug.log` in that directory for full log messages.
 
+### Run first test
+
+To run the tests, you will need to compile your contracts, and place them in the `internal` folder.  
+To make it easy, you can simply run the `full-test` which will compile the contracts, place them in the correct folder, "fix" your tests, and then run them.
+
+Terminal 3:
+
+```
+npm run full-test
+```
+
+**NOTE**: If you modify your contract, you will need to recompile the contracts again, you can use `full-test` for that.
+
 ### Run tests
+
+To run the tests again, you can simply use `test`.
 
 Terminal 3:
 
@@ -68,6 +73,9 @@ Terminal 3:
 npm run test
 ```
 
+**NOTE**: If you modified your contract, you will need to run `full-test` to run the tests on the new contracts.
+
+### Stop chains
 You may run and re-run tests many times. When you are done with it and want to free up some system resources (stop running two blockchains in the background), you need to run these commands to stop them properly:
 
 ```

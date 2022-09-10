@@ -1,25 +1,18 @@
 # CosmWasm IBC Example
 
 This is a simple IBC enabled CosmWasm smart contract. It expects to be
-deployed on two chains and, when prompted, will send messages to its
-counterpart. It then counts the number of times messages have been
-received on both sides.
+deployed on two chains and, when prompted, will send ping messages to its
+counterpart. It then counts the number of times pings received.
 
 At a high level, to use this contract:
 
 1. Store and instantiate the contract on two IBC enabled chains. We
    will call these chains chain A and chain B.
 2. Configure and run a relayer to connect the two contracts.
-3. Execute the `Increment {}` method on one contract to increment the
+3. Execute the `Ping {}` method on one contract to increment the
    send a message and increment the count on the other one.
-4. Use the `GetCount { connection }` query to determine the message
-   count for a given connection.
-
-This repo also contains a demo contract which makes an infinite loop
-of contract calls over IBC. See the README on the
-[`zeke/ibc-replay`](https://github.com/ezekiiel/cw-ibc-example/tree/zeke/ibc-replay)
-branch for more information and an integration test that demonstrates
-this.
+4. Use the `GetCounter { channel }` query to determine the amount of pings was
+   sent successfully to other chain.
 
 ## Background
 
@@ -47,10 +40,11 @@ points (see `src/ibc.rs`):
 3. `ibc_channel_close` - Handles the closing of an IBC channel by the
    counterparty.
 4. `ibc_packet_receive` - Handles receiving IBC packets from the
-   counterparty.
+   counterparty. (see `src/ibc_recieve.rs`)
 5. `ibc_packet_ack` - Handles ACK messages from the countarparty. This
    is effectively identical to the ACK message type in
    [TCP](https://developer.mozilla.org/en-US/docs/Glossary/TCP_handshake).
+   (see `src/ibc_ack.rs`)
 6. `ibc_packet_timeout` - Handles packet timeouts.
 
 Having implemented these methods, once you instantiate an instance of
