@@ -62,11 +62,11 @@ mod tests {
     }
 
     fn mint<'a>(
+        deps: DepsMut,
+        info: MessageInfo,
         token_id: String,
         owner: String,
         contract: &Cw721MetadataContract,
-        deps: DepsMut,
-        info: MessageInfo,
     ) -> MintMsg<Extension> {
         let mint_msg = MintMsg {
             token_id: token_id.to_string(),
@@ -96,11 +96,11 @@ mod tests {
         let token_id = "0001";
         let owner = "minter";
         let mint_msg = mint(
+            deps.as_mut(),
+            info.clone(),
             token_id.to_string(),
             owner.to_string(),
             &contract,
-            deps.as_mut(),
-            info.clone(),
         );
 
         let nft_info = contract.nft_info(deps.as_ref(), token_id.into()).unwrap();
@@ -120,11 +120,11 @@ mod tests {
         let token_id = "0001";
         let owner = "minter";
         mint(
+            deps.as_mut(),
+            info.clone(),
             token_id.to_string(),
             owner.to_string(),
             &contract,
-            deps.as_mut(),
-            info.clone(),
         );
 
         // transfer
