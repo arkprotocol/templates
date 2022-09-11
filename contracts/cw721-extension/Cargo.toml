@@ -4,7 +4,7 @@
 # - In case of any doubt contact Ark Protocol on Discord or Twitter.
 
 [package]
-name = "ark-protocol-minimal"
+name = "cw721-extension"
 version = "0.1.0"
 authors = ["taitruong", "art3mix", "tottruong"]
 edition = "2021"

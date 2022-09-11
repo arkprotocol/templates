@@ -1,5 +1,5 @@
 [workspace]
-members = ["templates/*"]
+members = ["contracts/*"]
 
 [profile.release.package.ibc-example]
 codegen-units = 1
