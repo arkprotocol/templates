@@ -94,9 +94,19 @@ In case of changes on above files you might need to adjust Cargo.toml. There are
 
 TODO: https://github.com/arkprotocol/arkprotocol/issues/2
 
-## cw721-metadata-example
+## cw721-extension examples
 
-TODO: https://github.com/arkprotocol/arkprotocol/issues/3
+This is based on: https://github.com/CosmWasm/cw-nfts/tree/main/contracts/cw721-metadata-onchain
+
+Simple cw712 contract with metadata as extension stored on chain. Look here:
+
+- state.rs: defines metadata and adds it to Cw721Contract
+- execute.rs and query.rs: entry endpoints are dispatched through Cw721MetadataContract.
+
+Habe a look at unit tests showing how to:
+- instantiate a new NFT collection
+- mint an NFT for this instantiated collection
+- transfer an NFT to another address
 
 # Resources
 
