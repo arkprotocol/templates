@@ -103,7 +103,7 @@ Simple cw712 contract with metadata as extension stored on chain. Look here:
 - state.rs: defines metadata and adds it to Cw721Contract
 - execute.rs and query.rs: entry endpoints are dispatched through Cw721MetadataContract.
 
-Habe a look at unit tests showing how to:
+Have a look at unit tests showing how to:
 - instantiate a new NFT collection
 - mint an NFT for this instantiated collection
 - transfer an NFT to another address
