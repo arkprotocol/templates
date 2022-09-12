@@ -15,4 +15,5 @@
 *.iml
 .idea
 
-/ci-scripts/debug-*
+# local chain temp folders
+**/debug-*.log
