@@ -76,6 +76,7 @@ npm run test
 **NOTE**: If you modified your contract, you will need to run `full-test` to run the tests on the new contracts.
 
 ### Stop chains
+
 You may run and re-run tests many times. When you are done with it and want to free up some system resources (stop running two blockchains in the background), you need to run these commands to stop them properly:
 
 ```
