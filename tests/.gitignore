@@ -106,4 +106,4 @@ dist
 .tern-port
 
 # Internal wasm files
-./internal
+./internal/*
