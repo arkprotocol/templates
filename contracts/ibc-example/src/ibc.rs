@@ -9,8 +9,8 @@ use crate::{
     state::{CONNECTIONS, COUNTERS},
     ContractError,
 };
-pub const IBC_VERSION: &str = "ping-1";
 
+pub const IBC_VERSION: &str = "ping-1";
 pub const IBC_ORDER: IbcOrder = IbcOrder::Unordered;
 
 /// Handles the `OpenInit` and `OpenTry` parts of the IBC handshake.

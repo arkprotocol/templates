@@ -92,7 +92,12 @@ In case of changes on above files you might need to adjust Cargo.toml. There are
 
 ## ibc-example
 
-TODO: https://github.com/arkprotocol/arkprotocol/issues/2
+This is based on: https://github.com/ezekiiel/cw-ibc-example  
+Built using the demo: https://github.com/confio/cw-ibc-demo
+
+Simple extended ibc-example contract to use for complex apps.  
+The general idea 
+
 
 ## cw721-extension examples
 
