@@ -140,10 +140,13 @@ async function demoSetup(): Promise<SetupInfo> {
   assert(osmoIbcPortId);
 
   // create a connection and channel
-  const [src, dest] = await setup(wasmd, osmosis);
-  const link = await Link.createWithNewConnections(src, dest);
+  // - create ibc client for each chain
+  const [ibcClientWasmChain, ibcClientOsomoChain] = await setup(wasmd, osmosis);
+  // - create connection between both chains
+  const link = await Link.createWithNewConnections(ibcClientWasmChain, ibcClientOsomoChain);
+  // - create channel between contract on wasm chain and contract on osmo chain
   await link.createChannel(
-    "A",
+    "A", // initialize from left side (A)
     wasmIbcPortId,
     osmoIbcPortId,
     IbcOrder,
