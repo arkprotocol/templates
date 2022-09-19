@@ -165,7 +165,7 @@ async function demoSetup(): Promise<SetupInfo> {
   };
 }
 
-test.serial("ping the remote chain", async (t) => {
+test.serial("ping from wasm to osmo chain", async (t) => {
   const { wasmClient, wasmPing, osmoClient, osmoPing, link } =
     await demoSetup();
 
@@ -189,7 +189,13 @@ test.serial("ping the remote chain", async (t) => {
   t.log(`Wasm channel id: ${wasmConnections[0]}`);
   t.log(`Osmo channel id: ${osmoConnections[0]}`);
   //Send msg with ping
-  await sendPing(wasmClient, wasmPing, channelId);
+  const msg = {
+    ping: {
+      channel: channelId,
+    },
+  };
+  const pingResponse = await sendPing(wasmClient, wasmPing, msg);
+  t.log(`>>>ping response: ${JSON.stringify(pingResponse)}`);
 
   //relay
   const info = await link.relayAll();

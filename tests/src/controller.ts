@@ -35,14 +35,8 @@ export async function showCounter(
 export async function sendPing(
   cosmwasm: CosmWasmSigner,
   contractAddr: string,
-  channelId: string
+  msg: Record<string, unknown>
 ): Promise<ExecuteResult> {
-  const msg = {
-    ping: {
-      channel: channelId,
-    },
-  };
-
   const res = await cosmwasm.sign.execute(
     cosmwasm.senderAddress,
     contractAddr,

@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "dispatch"
+      ],
+      "properties": {
+        "dispatch": {
+          "type": "object",
+          "required": [
+            "channel",
+            "dispatcher_address",
+            "echo",
+            "target_address"
+          ],
+          "properties": {
+            "channel": {
+              "type": "string"
+            },
+            "dispatcher_address": {
+              "type": "string"
+            },
+            "echo": {
+              "type": "string"
+            },
+            "target_address": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

@@ -36,7 +36,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 [dependencies]
 cosmwasm-std = "1.1.0"
 # cosmwasm-storage = "1.1.0"
-cw-storage-plus = "0.14.0"
+cw-storage-plus = "0.15.0"
 # cw2 = "0.14.0"
 # cw721 = "0.13.4"
 # cw721-base = "0.13.4"
@@ -45,5 +45,5 @@ serde = { version = "1.0.144", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.34" }
 
 [dev-dependencies]
-# cosmwasm-schema = "1.1.0"
+cosmwasm-schema = "1.1.0"
 # cw-multi-test = "0.14.0"

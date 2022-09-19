@@ -12,7 +12,6 @@ import { Order } from "cosmjs-types/ibc/core/channel/v1/channel";
 
 const {
   fundAccount,
-  generateMnemonic,
   osmosis: oldOsmo,
   signingCosmWasmClient,
   wasmd,
@@ -49,7 +48,8 @@ export async function setupContracts(
 // This creates a client for the CosmWasm chain, that can interact with contracts
 export async function setupWasmClient(): Promise<CosmWasmSigner> {
   // create apps and fund an account
-  const mnemonic = generateMnemonic();
+  const mnemonic = // using same mnemonic as defined in WBA TWT testnet scripts
+    "harsh adult scrub stadium solution impulse company agree tomorrow poem dirt innocent coyote slight nice digital scissors cool pact person item moon double wagon";
   const cosmwasm = await signingCosmWasmClient(wasmd, mnemonic);
   await fundAccount(wasmd, cosmwasm.senderAddress, "4000000");
   return cosmwasm;
@@ -58,7 +58,8 @@ export async function setupWasmClient(): Promise<CosmWasmSigner> {
 // This creates a client for the CosmWasm chain, that can interact with contracts
 export async function setupOsmosisClient(): Promise<CosmWasmSigner> {
   // create apps and fund an account
-  const mnemonic = generateMnemonic();
+  const mnemonic = // using same mnemonic as defined in WBA TWT testnet scripts
+    "harsh adult scrub stadium solution impulse company agree tomorrow poem dirt innocent coyote slight nice digital scissors cool pact person item moon double wagon";
   const cosmwasm = await signingCosmWasmClient(osmosis, mnemonic);
   await fundAccount(osmosis, cosmwasm.senderAddress, "4000000");
   return cosmwasm;
