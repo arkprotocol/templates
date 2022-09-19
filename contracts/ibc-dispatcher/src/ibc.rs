@@ -5,10 +5,7 @@ use cosmwasm_std::{
     IbcChannelOpenMsg, IbcOrder, IbcPacketTimeoutMsg,
 };
 
-use crate::{
-    state::{CONNECTIONS, COUNTERS},
-    ContractError,
-};
+use crate::{state::CONNECTIONS, ContractError};
 pub const IBC_VERSION: &str = "ping-1";
 
 pub const IBC_ORDER: IbcOrder = IbcOrder::Unordered;
@@ -34,7 +31,6 @@ pub fn ibc_channel_connect(
     // Initialize the count for this channel to zero.
     let channel = msg.channel().endpoint.channel_id.clone();
     CONNECTIONS.save(deps.storage, &channel, &true)?;
-    COUNTERS.save(deps.storage, &channel, &0)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("method", "ibc_channel_connect")

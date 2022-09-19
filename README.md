@@ -108,6 +108,21 @@ Have a look at unit tests showing how to:
 - mint an NFT for this instantiated collection
 - transfer an NFT to another address
 
+## IBC Dispatcher
+
+The objective of this (not yet finished) contract is the following:
+- a source contract on chain A wants to execute
+- a target contract on chain B, where in return
+- source contract gets a response back from target contract.
+
+This can already be done by using IBC - hence this requires a lot of boiler plate code. Basically all IBC calls looks the same.
+
+IBC dispatcher to the rescue:
+- a source chain can pass target message along with target contract address and IBC channel (telling on which chain it is) and
+- pass this message to the dispatcher, where
+- dispatcher pass it to target contract on the other channel, where in return
+- source target gets a response back from the dispatcher
+
 # Resources
 
 Ark Protocol PoC

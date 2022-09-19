@@ -4,8 +4,8 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
 use ibc_dispatcher::{
-    ibc_msg::{IbcExecuteMsg, IbcPingResponse},
-    msg::{ExecuteMsg, GetConnectionsResponse, GetCounterResponse, InstantiateMsg, QueryMsg},
+    ibc_msg::IbcExecuteMsg,
+    msg::{ExecuteMsg, GetConnectionsResponse, InstantiateMsg, QueryMsg},
 };
 
 fn main() {
@@ -18,7 +18,5 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(IbcExecuteMsg), &out_dir);
-    export_schema(&schema_for!(IbcPingResponse), &out_dir);
     export_schema(&schema_for!(GetConnectionsResponse), &out_dir);
-    export_schema(&schema_for!(GetCounterResponse), &out_dir);
 }
