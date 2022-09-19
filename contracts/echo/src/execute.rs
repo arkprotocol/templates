@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
@@ -19,7 +21,7 @@ pub fn instantiate(
     STATE.save(deps.storage, &state)?;
     Ok(Response::new()
         .add_attribute("action", "instantiate")
-        .add_attribute("echo", "")
+        .add_attribute("echo", "<empty>")
     )
 }
 
@@ -45,7 +47,7 @@ fn execute_echo(
     }).unwrap();
     Ok(Response::new()
         .add_attribute("action", "execute_echo")
-        .add_attribute("echo", echo)
+        .add_attribute("echo", "received: ".to_string().add(echo.as_str()))
     )
 }
 #[cfg(test)]
@@ -66,7 +68,7 @@ mod tests {
         let response = instantiate(deps.as_mut(), env, info, msg).unwrap();
         // assert response contains empty echo
         let attribute = response.attributes.iter().find(|a| a.key == "echo").unwrap();
-        assert_eq!("", attribute.value);
+        assert_eq!("<empty>", attribute.value);
     }
 
     #[test]
@@ -81,7 +83,7 @@ mod tests {
         let response = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
         // assert response contains hello world echo
         let attribute = response.attributes.iter().find(|a| a.key == "echo").unwrap();
-        assert_eq!("Hello, world!", attribute.value);
+        assert_eq!("received: Hello, world!", attribute.value);
 
         // assert query
         let msg = QueryMsg::Echo {  };
