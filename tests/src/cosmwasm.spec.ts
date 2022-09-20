@@ -7,7 +7,7 @@ const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
 import {
   ibcPingResponse,
-  sendPing,
+  executeContract,
   showConnections,
   showCounter,
 } from "./controller";
@@ -194,7 +194,7 @@ test.serial("ping from wasm to osmo chain", async (t) => {
       channel: channelId,
     },
   };
-  const pingResponse = await sendPing(wasmClient, wasmPing, msg);
+  const pingResponse = await executeContract(wasmClient, wasmPing, msg);
   t.log(`>>>ping response: ${JSON.stringify(pingResponse)}`);
 
   //relay

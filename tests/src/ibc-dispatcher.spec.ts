@@ -5,7 +5,7 @@ import test from "ava";
 const { osmosis: oldOsmo, setup, wasmd } = testutils;
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
-import { ibcPingResponse, sendPing, showConnections } from "./controller";
+import { ibcPingResponse, executeContract, showConnections } from "./controller";
 import {
   assertAckSuccess,
   IbcOrder,
@@ -322,7 +322,7 @@ test.serial("send echo from wasm to osmo chain", async (t) => {
     },
   };
   t.log(`Executing ${JSON.stringify(msg)} on channel ${channelId}`);
-  const response = await sendPing(
+  const response = await executeContract(
     wasmClient,
     wasmIbcDispatcherContractAddress,
     msg

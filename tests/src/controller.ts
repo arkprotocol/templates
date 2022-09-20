@@ -32,7 +32,7 @@ export async function showCounter(
   return res;
 }
 
-export async function sendPing(
+export async function executeContract(
   cosmwasm: CosmWasmSigner,
   contractAddr: string,
   msg: Record<string, unknown>
