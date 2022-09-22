@@ -13,43 +13,34 @@ export interface Counter {
   count: number;
 }
 
-export async function showConnections(
+export function showConnections(
   cosmwasm: CosmWasmSigner,
   contractAddr: string
 ): Promise<Connections> {
   const query = { get_connections: {} };
-  const res = await cosmwasm.sign.queryContractSmart(contractAddr, query);
-  return res;
+  return cosmwasm.sign.queryContractSmart(contractAddr, query);
 }
 
-export async function showCounter(
+export function showCounter(
   cosmwasm: CosmWasmSigner,
   contractAddr: string,
   channel: string
 ): Promise<Counter> {
   const query = { get_counter: { channel } };
-  const res = await cosmwasm.sign.queryContractSmart(contractAddr, query);
-  return res;
+  return cosmwasm.sign.queryContractSmart(contractAddr, query);
 }
 
-export async function sendPing(
-  cosmwasm: CosmWasmSigner,
+export function executeContract(
+  client: CosmWasmSigner,
   contractAddr: string,
-  channelId: string
+  msg: Record<string, unknown>
 ): Promise<ExecuteResult> {
-  const msg = {
-    ping: {
-      channel: channelId,
-    },
-  };
-
-  const res = await cosmwasm.sign.execute(
-    cosmwasm.senderAddress,
+  return client.sign.execute(
+    client.senderAddress,
     contractAddr,
     msg,
-    "auto",
-    undefined,
-    undefined
+    "auto", // fee
+    undefined, // no memo
+    undefined // no funds
   );
-  return res;
 }
