@@ -9,12 +9,13 @@
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build:test": "tsc -p tsconfig.json",
+    "build:wasm": "./../devtools/build_integration_wasm.sh",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"**/*.{ts,md}\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
-    "full-test": "./../devtools/build_integration_wasm.sh; run-s fix:*; run-s build test:*",
-    "test": "npm run fix; run-s build test:*",
+    "full-test": "run-s build:wasm; run-s fix:*; run-s build:test test:*",
+    "test": "run-s build:test test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"**/*.{ts,md}\" --list-different",
     "test:unit": "nyc --silent ava --serial"
