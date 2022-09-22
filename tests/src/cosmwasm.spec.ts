@@ -5,38 +5,31 @@ import test from "ava";
 const { osmosis: oldOsmo, setup, wasmd } = testutils;
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
-import {
-  executeContract,
-} from "./controller";
+import { executeContract } from "./controller";
 import {
   assertAckSuccess,
   IbcOrder,
   IbcVersion,
   parseAcknowledgementSuccess,
-  setupContracts,
+  setupAll,
   SetupInfo,
   setupOsmosisClient,
   setupWasmClient,
 } from "./utils";
 
-let wasmIds: Record<string, number> = {};
-let osmosisIds: Record<string, number> = {};
+let wasmCodeIds: Record<string, number> = {};
+let osmoCodeIds: Record<string, number> = {};
+
+const WASM_FILE = "./internal/ibc_example.wasm";
 
 //Upload contracts to chains.
 test.before(async (t) => {
-  console.debug("Upload contract to wasmd...");
-  const wasmContracts = {
-    ping: "./internal/ibc_example.wasm",
+  const contracts = {
+    ping: WASM_FILE,
   };
-  const wasmSign = await setupWasmClient();
-  wasmIds = await setupContracts(wasmSign, wasmContracts);
-
-  console.debug("Upload contract to osmosis...");
-  const osmosisContracts = {
-    ping: "./internal/ibc_example.wasm",
-  };
-  const osmosisSign = await setupOsmosisClient();
-  osmosisIds = await setupContracts(osmosisSign, osmosisContracts);
+  const chainInfo = await setupAll(contracts, contracts);
+  wasmCodeIds = chainInfo.wasmCodeIds;
+  osmoCodeIds = chainInfo.wasmCodeIds;
 
   t.pass();
 });
@@ -48,7 +41,7 @@ test.serial("set up channel with ping contract", async (t) => {
   const initPing = {};
   const { contractAddress: wasmCont } = await wasmClient.sign.instantiate(
     wasmClient.senderAddress,
-    wasmIds.ping,
+    wasmCodeIds.ping,
     initPing,
     "simple ping",
     "auto"
@@ -64,7 +57,7 @@ test.serial("set up channel with ping contract", async (t) => {
   const osmoClient = await setupOsmosisClient();
   const { contractAddress: osmoHost } = await osmoClient.sign.instantiate(
     osmoClient.senderAddress,
-    osmosisIds.ping,
+    osmoCodeIds.ping,
     initPing,
     "simple ping",
     "auto"
@@ -92,13 +85,14 @@ async function demoSetup(): Promise<SetupInfo> {
   // instantiate ping on wasmd
   const wasmClient = await setupWasmClient();
   const initPing = {};
-  const { contractAddress: wasmContractAddress } = await wasmClient.sign.instantiate(
-    wasmClient.senderAddress,
-    wasmIds.ping,
-    initPing,
-    "simple ping",
-    "auto"
-  );
+  const { contractAddress: wasmContractAddress } =
+    await wasmClient.sign.instantiate(
+      wasmClient.senderAddress,
+      wasmCodeIds.ping,
+      initPing,
+      "simple ping",
+      "auto"
+    );
   const { ibcPortId: wasmPingPort } = await wasmClient.sign.getContract(
     wasmContractAddress
   );
@@ -107,13 +101,14 @@ async function demoSetup(): Promise<SetupInfo> {
   // instantiate ping on osmosis
   const osmoClient = await setupOsmosisClient();
 
-  const { contractAddress: osmoContractAddress } = await osmoClient.sign.instantiate(
-    osmoClient.senderAddress,
-    osmosisIds.ping,
-    initPing,
-    "simple ping",
-    "auto"
-  );
+  const { contractAddress: osmoContractAddress } =
+    await osmoClient.sign.instantiate(
+      osmoClient.senderAddress,
+      osmoCodeIds.ping,
+      initPing,
+      "simple ping",
+      "auto"
+    );
   const { ibcPortId: osmoPingPort } = await osmoClient.sign.getContract(
     osmoContractAddress
   );
@@ -155,8 +150,13 @@ async function demoSetup(): Promise<SetupInfo> {
 }
 
 test.serial("ping the remote chain", async (t) => {
-  const { wasmClient, wasmContractAddress, osmoClient, osmoContractAddress, link } =
-    await demoSetup();
+  const {
+    wasmClient,
+    wasmContractAddress,
+    osmoClient,
+    osmoContractAddress,
+    link,
+  } = await demoSetup();
 
   // If init should send a packet to other chain, don't forget to relay it.
   // let info = await link.relayAll();
@@ -166,15 +166,17 @@ test.serial("ping the remote chain", async (t) => {
   function showConnections(
     cosmwasm: CosmWasmSigner,
     contractAddr: string
-  ): Promise<{connections: string[]}> {
+  ): Promise<{ connections: string[] }> {
     const query = { get_connections: {} };
     return cosmwasm.sign.queryContractSmart(contractAddr, query);
   }
 
-  const wasmConnections = (await showConnections(wasmClient, wasmContractAddress))
-    .connections;
-  const osmoConnections = (await showConnections(osmoClient, osmoContractAddress))
-    .connections;
+  const wasmConnections = (
+    await showConnections(wasmClient, wasmContractAddress)
+  ).connections;
+  const osmoConnections = (
+    await showConnections(osmoClient, osmoContractAddress)
+  ).connections;
 
   t.is(wasmConnections.length, 1);
   t.is(osmoConnections.length, 1);
@@ -200,7 +202,7 @@ test.serial("ping the remote chain", async (t) => {
   assertAckSuccess(info.acksFromB);
 
   //Get the parsed ack result
-  const ackResult: {result: string} = parseAcknowledgementSuccess(
+  const ackResult: { result: string } = parseAcknowledgementSuccess(
     info.acksFromB[0]
   );
 
@@ -211,18 +213,20 @@ test.serial("ping the remote chain", async (t) => {
     cosmwasm: CosmWasmSigner,
     contractAddr: string,
     channel: string
-  ): Promise<{count: number}> {
+  ): Promise<{ count: number }> {
     const query = { get_counter: { channel } };
     return cosmwasm.sign.queryContractSmart(contractAddr, query);
   }
-  const wasmCounter = (await showCounter(wasmClient, wasmContractAddress, channelId))
-    .count;
+  const wasmCounter = (
+    await showCounter(wasmClient, wasmContractAddress, channelId)
+  ).count;
 
   t.is(wasmCounter, 1);
   t.log(`Wasm counter: ${wasmCounter}`);
 
-  const osmoCounter = (await showCounter(osmoClient, osmoContractAddress, channelId))
-    .count;
+  const osmoCounter = (
+    await showCounter(osmoClient, osmoContractAddress, channelId)
+  ).count;
 
   t.is(osmoCounter, 0);
   t.log(`Wasm counter: ${osmoCounter}`);
