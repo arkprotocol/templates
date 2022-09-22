@@ -24,6 +24,13 @@ const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 export const IbcVersion = "ping-1";
 export const IbcOrder = Order.ORDER_UNORDERED;
 
+export interface ChainInfo {
+  wasmClient: CosmWasmSigner;
+  osmoClient: CosmWasmSigner;
+  wasmCodeIds: Record<string, number>;
+  osmoCodeIds: Record<string, number>;
+}
+
 //This is the setupInfo we pass, to make sure we don't forget any data we need.
 export interface SetupInfo {
   wasmClient: CosmWasmSigner;
@@ -33,12 +40,29 @@ export interface SetupInfo {
   link: Link;
 }
 
+export async function setupAll(
+  wasmContracts: Record<string, string>,
+  osmoContracts: Record<string, string>
+): Promise<ChainInfo> {
+  console.debug("Upload contract to wasmd...");
+  const wasmClient = await setupWasmClient();
+  const wasmCodeIds = await setupContracts(wasmClient, wasmContracts);
 
+  console.debug("Upload contract to osmosis...");
+  const osmoClient = await setupOsmosisClient();
+  const osmoCodeIds = await setupContracts(osmoClient, osmoContracts);
+  return {
+    wasmClient,
+    osmoClient,
+    wasmCodeIds,
+    osmoCodeIds,
+  };
+}
 /**
  * Stores contracts (wasm files) into chain and returns contracts containing code ids.
- * 
- * @param cosmwasm 
- * @param contracts key-value pair where key is contract and value path to wasm file 
+ *
+ * @param cosmwasm
+ * @param contracts key-value pair where key is contract and value path to wasm file
  * @returns a key-value pair where key is contract and value contains code id
  */
 export async function setupContracts(
@@ -70,7 +94,9 @@ export async function setupContracts(
  * @param mnemonic optional, by default it generates a mnemonic
  * @returns
  */
-export async function setupWasmClient(mnemonic = generateMnemonic()): Promise<CosmWasmSigner> {
+export async function setupWasmClient(
+  mnemonic = generateMnemonic()
+): Promise<CosmWasmSigner> {
   // create apps and fund an account
   const cosmwasm = await signingCosmWasmClient(wasmd, mnemonic);
   await fundAccount(wasmd, cosmwasm.senderAddress, "4000000");
@@ -83,7 +109,9 @@ export async function setupWasmClient(mnemonic = generateMnemonic()): Promise<Co
  * @param mnemonic optional, by default it generates a mnemonic
  * @returns
  */
-export async function setupOsmosisClient(mnemonic = generateMnemonic()): Promise<CosmWasmSigner> {
+export async function setupOsmosisClient(
+  mnemonic = generateMnemonic()
+): Promise<CosmWasmSigner> {
   // create apps and fund an account
   const cosmwasm = await signingCosmWasmClient(osmosis, mnemonic);
   await fundAccount(osmosis, cosmwasm.senderAddress, "4000000");
