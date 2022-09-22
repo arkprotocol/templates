@@ -23,6 +23,13 @@ const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 export const IbcVersion = "ping-1";
 export const IbcOrder = Order.ORDER_UNORDERED;
 
+/**
+ * Stores contracts (wasm files) into chain and returns contracts containing code ids.
+ * 
+ * @param cosmwasm 
+ * @param contracts key-value pair where key is contract and value path to wasm file 
+ * @returns a key-value pair where key is contract and value contains code id
+ */
 export async function setupContracts(
   cosmwasm: CosmWasmSigner,
   contracts: Record<string, string>
@@ -36,10 +43,10 @@ export async function setupContracts(
     const receipt = await cosmwasm.sign.upload(
       cosmwasm.senderAddress,
       wasm,
-      "auto",
-      `Upload ${name}`
+      "auto", // auto fee
+      `Upload ${name}` // memo
     );
-    console.debug(`Upload ${name} with CodeID: ${receipt.codeId}`);
+    console.debug(`Uploaded ${name} with CodeID: ${receipt.codeId}`);
     results[name] = receipt.codeId;
   }
 
