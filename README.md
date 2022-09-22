@@ -88,6 +88,21 @@ In case of changes on above files you might need to adjust Cargo.toml. There are
 
 # Tests
 
+## ts-relayer
+
+### Scripts (from package.json)
+
+Scripts defined in package.json can be run like `npm run build:test`. These are the important scripts:
+
+- `build:test`: transpiles/compiles TypeScript files, everytime changes are made in TS a build is required!
+- `build:wasm`: calls build_integration_wasm.sh script
+- `fix`: reformats all ts files using prettier and eslint
+- `test`: calls build:test and all scripts starting with test:*
+- `test:unit`: runs unit tests (all files ending with *.spec.ts)
+
+In many cases your work on integration tests and do not build wasm files all the time. So the minimal and fastest would be using `npm run build:test;npm run test:unit`
+
+
 # Contracts
 
 ## ibc-example
