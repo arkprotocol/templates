@@ -50,11 +50,10 @@ test.serial("set up channel with contract", async (t) => {
     );
   t.log(`Wasm contract address: ${wasmContractAddress}`);
   t.truthy(wasmContractAddress);
-  const { ibcPortId: wasmIbcPortId } = await wasmClient.sign.getContract(
-    wasmContractAddress
-  );
-  t.log(`Wasm IBC port id: ${wasmIbcPortId}`);
-  assert(wasmIbcPortId);
+  const { ibcPortId: wasmContractIbcPortId } =
+    await wasmClient.sign.getContract(wasmContractAddress);
+  t.log(`Wasm IBC port id: ${wasmContractIbcPortId}`);
+  assert(wasmContractIbcPortId);
 
   // instantiate ping on osmosis
   const osmoClient = await setupOsmosisClient();
@@ -68,18 +67,17 @@ test.serial("set up channel with contract", async (t) => {
     );
   t.truthy(osmoContractAddress);
   t.log(`Osmo contract address: ${osmoContractAddress}`);
-  const { ibcPortId: osmoIbcPortId } = await osmoClient.sign.getContract(
-    osmoContractAddress
-  );
-  t.log(`Osmo IBC port id: ${osmoIbcPortId}`);
-  assert(osmoIbcPortId);
+  const { ibcPortId: osmoContractIbcPortId } =
+    await osmoClient.sign.getContract(osmoContractAddress);
+  t.log(`Osmo IBC port id: ${osmoContractIbcPortId}`);
+  assert(osmoContractIbcPortId);
 
   const [src, dest] = await setup(wasmd, osmosis);
   const link = await Link.createWithNewConnections(src, dest);
   await link.createChannel(
     "A",
-    wasmIbcPortId,
-    osmoIbcPortId,
+    wasmContractIbcPortId,
+    osmoContractIbcPortId,
     IbcOrder,
     IbcVersion
   );
@@ -98,10 +96,9 @@ async function demoSetup(): Promise<SetupInfo> {
       "contract 1",
       "auto"
     );
-  const { ibcPortId: wasmIbcPortId } = await wasmClient.sign.getContract(
-    wasmContractAddress
-  );
-  assert(wasmIbcPortId);
+  const { ibcPortId: wasmContractIbcPortId } =
+    await wasmClient.sign.getContract(wasmContractAddress);
+  assert(wasmContractIbcPortId);
 
   // instantiate contract 1 on osmosis
   const osmoClient = await setupOsmosisClient();
@@ -114,18 +111,17 @@ async function demoSetup(): Promise<SetupInfo> {
       "contract 1",
       "auto"
     );
-  const { ibcPortId: osmoIbcPortId } = await osmoClient.sign.getContract(
-    osmoContractAddress
-  );
-  assert(osmoIbcPortId);
+  const { ibcPortId: osmoContractIbcPortId } =
+    await osmoClient.sign.getContract(osmoContractAddress);
+  assert(osmoContractIbcPortId);
 
   // create a connection and channel
   const [src, dest] = await setup(wasmd, osmosis);
   const link = await Link.createWithNewConnections(src, dest);
   await link.createChannel(
     "A",
-    wasmIbcPortId,
-    osmoIbcPortId,
+    wasmContractIbcPortId,
+    osmoContractIbcPortId,
     IbcOrder,
     IbcVersion
   );

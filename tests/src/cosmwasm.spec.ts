@@ -39,42 +39,42 @@ test.serial("set up channel with ping contract", async (t) => {
   // instantiate ping on wasmd
   const wasmClient = await setupWasmClient();
   const initPing = {};
-  const { contractAddress: wasmCont } = await wasmClient.sign.instantiate(
-    wasmClient.senderAddress,
-    wasmCodeIds.ping,
-    initPing,
-    "simple ping",
-    "auto"
-  );
-  t.truthy(wasmCont);
-  const { ibcPortId: wasmPingPort } = await wasmClient.sign.getContract(
-    wasmCont
-  );
-  t.log(`Wasm ping Port: ${wasmPingPort}`);
-  assert(wasmPingPort);
+  const { contractAddress: wasmContractAddress } =
+    await wasmClient.sign.instantiate(
+      wasmClient.senderAddress,
+      wasmCodeIds.ping,
+      initPing,
+      "simple ping",
+      "auto"
+    );
+  t.truthy(wasmContractAddress);
+  const { ibcPortId: wasmContractIbcPortId } =
+    await wasmClient.sign.getContract(wasmContractAddress);
+  t.log(`Wasm ping Port: ${wasmContractIbcPortId}`);
+  assert(wasmContractIbcPortId);
 
   // instantiate ping on osmosis
   const osmoClient = await setupOsmosisClient();
-  const { contractAddress: osmoHost } = await osmoClient.sign.instantiate(
-    osmoClient.senderAddress,
-    osmoCodeIds.ping,
-    initPing,
-    "simple ping",
-    "auto"
-  );
-  t.truthy(osmoHost);
-  const { ibcPortId: osmoPingPort } = await osmoClient.sign.getContract(
-    osmoHost
-  );
-  t.log(`Osmo ping Port: ${osmoPingPort}`);
-  assert(osmoPingPort);
+  const { contractAddress: osmoContractAddress } =
+    await osmoClient.sign.instantiate(
+      osmoClient.senderAddress,
+      osmoCodeIds.ping,
+      initPing,
+      "simple ping",
+      "auto"
+    );
+  t.truthy(osmoContractAddress);
+  const { ibcPortId: osmoContractIbcPortId } =
+    await osmoClient.sign.getContract(osmoContractAddress);
+  t.log(`Osmo ping Port: ${osmoContractIbcPortId}`);
+  assert(osmoContractIbcPortId);
 
   const [src, dest] = await setup(wasmd, osmosis);
   const link = await Link.createWithNewConnections(src, dest);
   await link.createChannel(
     "A",
-    wasmPingPort,
-    osmoPingPort,
+    wasmContractIbcPortId,
+    osmoContractIbcPortId,
     IbcOrder,
     IbcVersion
   );
@@ -93,10 +93,9 @@ async function demoSetup(): Promise<SetupInfo> {
       "simple ping",
       "auto"
     );
-  const { ibcPortId: wasmPingPort } = await wasmClient.sign.getContract(
-    wasmContractAddress
-  );
-  assert(wasmPingPort);
+  const { ibcPortId: wasmContractIbcPortId } =
+    await wasmClient.sign.getContract(wasmContractAddress);
+  assert(wasmContractIbcPortId);
 
   // instantiate ping on osmosis
   const osmoClient = await setupOsmosisClient();
@@ -109,18 +108,17 @@ async function demoSetup(): Promise<SetupInfo> {
       "simple ping",
       "auto"
     );
-  const { ibcPortId: osmoPingPort } = await osmoClient.sign.getContract(
-    osmoContractAddress
-  );
-  assert(osmoPingPort);
+  const { ibcPortId: osmoContractIbcPortId } =
+    await osmoClient.sign.getContract(osmoContractAddress);
+  assert(osmoContractIbcPortId);
 
   // create a connection and channel
   const [src, dest] = await setup(wasmd, osmosis);
   const link = await Link.createWithNewConnections(src, dest);
   await link.createChannel(
     "A",
-    wasmPingPort,
-    osmoPingPort,
+    wasmContractIbcPortId,
+    osmoContractIbcPortId,
     IbcOrder,
     IbcVersion
   );
