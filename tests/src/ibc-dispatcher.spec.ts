@@ -6,10 +6,7 @@ const { osmosis: oldOsmo, setup, wasmd } = testutils;
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
 import {
-  ibcPingResponse,
   executeContract,
-  showConnections,
-  showCounter,
 } from "./controller";
 import {
   assertAckSuccess,
@@ -165,6 +162,14 @@ test.serial("ping the remote chain", async (t) => {
   // assertPacketsFromA(info, 1, true);
 
   // Query to see connections
+  function showConnections(
+    cosmwasm: CosmWasmSigner,
+    contractAddr: string
+  ): Promise<{connections: string[]}> {
+    const query = { get_connections: {} };
+    return cosmwasm.sign.queryContractSmart(contractAddr, query);
+  }
+
   const wasmConnections = (
     await showConnections(wasmClient, wasmContractAddress)
   ).connections;
@@ -196,13 +201,21 @@ test.serial("ping the remote chain", async (t) => {
   assertAckSuccess(info.acksFromB);
 
   //Get the parsed ack result
-  const ackResult: ibcPingResponse = parseAcknowledgementSuccess(
+  const ackResult: {result: string} = parseAcknowledgementSuccess(
     info.acksFromB[0]
   );
 
   //Assert it is pong.
   t.is(ackResult.result, "pong");
 
+  function showCounter(
+    cosmwasm: CosmWasmSigner,
+    contractAddr: string,
+    channel: string
+  ): Promise<{count: number}> {
+    const query = { get_counter: { channel } };
+    return cosmwasm.sign.queryContractSmart(contractAddr, query);
+  }
   const wasmCounter = (
     await showCounter(wasmClient, wasmContractAddress, channelId)
   ).count;
