@@ -1,5 +1,34 @@
 import { CosmWasmSigner } from "@confio/relayer";
-import { ExecuteResult } from "@cosmjs/cosmwasm-stargate";
+import { ExecuteResult, InstantiateResult } from "@cosmjs/cosmwasm-stargate";
+import { assert } from "@cosmjs/utils";
+
+export async function instantiateContract(
+  client: CosmWasmSigner,
+  codeId: number,
+  msg: Record<string, unknown>,
+  label: string
+): Promise<InstantiateResult> {
+  const result = await client.sign.instantiate(
+    client.senderAddress,
+    codeId,
+    msg,
+    label,
+    "auto"
+  );
+  console.debug(`Wasm contract address: ${result.contractAddress}`);
+  assert(result.contractAddress);
+  return result;
+}
+
+export async function getIbcPortId(
+  client: CosmWasmSigner,
+  contractAddress: string
+) {
+  const { ibcPortId } = await client.sign.getContract(contractAddress);
+  console.debug(`IBC port id: ${ibcPortId}`);
+  assert(ibcPortId);
+  return ibcPortId;
+}
 
 export function executeContract(
   client: CosmWasmSigner,
