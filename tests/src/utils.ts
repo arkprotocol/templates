@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import {
   AckWithMetadata,
   CosmWasmSigner,
+  Link,
   RelayInfo,
   testutils,
 } from "@confio/relayer";
@@ -22,6 +23,16 @@ const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
 export const IbcVersion = "ping-1";
 export const IbcOrder = Order.ORDER_UNORDERED;
+
+//This is the setupInfo we pass, to make sure we don't forget any data we need.
+export interface SetupInfo {
+  wasmClient: CosmWasmSigner;
+  osmoClient: CosmWasmSigner;
+  wasmContractAddress: string;
+  osmoContractAddress: string;
+  link: Link;
+}
+
 
 /**
  * Stores contracts (wasm files) into chain and returns contracts containing code ids.
@@ -53,19 +64,27 @@ export async function setupContracts(
   return results;
 }
 
-// This creates a client for the CosmWasm chain, that can interact with contracts
-export async function setupWasmClient(): Promise<CosmWasmSigner> {
+/**
+ * This creates a client for the Wasmd chain, that can interact with contracts.
+ *
+ * @param mnemonic optional, by default it generates a mnemonic
+ * @returns
+ */
+export async function setupWasmClient(mnemonic = generateMnemonic()): Promise<CosmWasmSigner> {
   // create apps and fund an account
-  const mnemonic = generateMnemonic();
   const cosmwasm = await signingCosmWasmClient(wasmd, mnemonic);
   await fundAccount(wasmd, cosmwasm.senderAddress, "4000000");
   return cosmwasm;
 }
 
-// This creates a client for the CosmWasm chain, that can interact with contracts
-export async function setupOsmosisClient(): Promise<CosmWasmSigner> {
+/**
+ * This creates a client for the Osmosis chain, that can interact with contracts.
+ *
+ * @param mnemonic optional, by default it generates a mnemonic
+ * @returns
+ */
+export async function setupOsmosisClient(mnemonic = generateMnemonic()): Promise<CosmWasmSigner> {
   // create apps and fund an account
-  const mnemonic = generateMnemonic();
   const cosmwasm = await signingCosmWasmClient(osmosis, mnemonic);
   await fundAccount(osmosis, cosmwasm.senderAddress, "4000000");
   return cosmwasm;

@@ -17,6 +17,7 @@ import {
   IbcVersion,
   parseAcknowledgementSuccess,
   setupContracts,
+  SetupInfo,
   setupOsmosisClient,
   setupWasmClient,
 } from "./utils";
@@ -88,15 +89,6 @@ test.serial("set up channel with ping contract", async (t) => {
     IbcVersion
   );
 });
-
-//This is the setupInfo we pass, to make sure we don't forget any data we need.
-interface SetupInfo {
-  wasmClient: CosmWasmSigner;
-  osmoClient: CosmWasmSigner;
-  wasmContractAddress: string;
-  osmoContractAddress: string;
-  link: Link;
-}
 
 //A setup function to init the contracts for tests.
 async function demoSetup(): Promise<SetupInfo> {
