@@ -1,161 +1,54 @@
-import { CosmWasmSigner, Link, testutils } from "@confio/relayer";
+import { CosmWasmSigner } from "@confio/relayer";
 import { assert } from "@cosmjs/utils";
 import test from "ava";
-
-const { osmosis: oldOsmo, setup, wasmd } = testutils;
-const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
+import { Order } from "cosmjs-types/ibc/core/channel/v1/channel";
 
 import { executeContract } from "./controller";
 import {
   assertAckSuccess,
-  IbcOrder,
-  IbcVersion,
+  ChannelInfo,
+  ContractInfo,
+  ContractMsg,
+  createIbcConnectionAndChannel,
   parseAcknowledgementSuccess,
-  setupAll,
-  SetupInfo,
-  setupOsmosisClient,
-  setupWasmClient,
+  uploadAndInstantiateAll,
 } from "./utils";
 
-let wasmCodeIds: Record<string, number> = {};
-let osmoCodeIds: Record<string, number> = {};
+let wasmContractInfos: Record<string, ContractInfo> = {};
+let osmoContractInfos: Record<string, ContractInfo> = {};
+let wasmClient: CosmWasmSigner;
+let osmoClient: CosmWasmSigner;
+let channelInfo: ChannelInfo;
 
 const WASM_FILE = "./internal/ibc_example.wasm";
 
 //Upload contracts to chains.
 test.before(async (t) => {
-  const contracts = {
-    ping: WASM_FILE,
+  const contracts: Record<string, ContractMsg> = {
+    ping: {
+      path: WASM_FILE,
+      instantiateMsg: {},
+    },
   };
-  const chainInfo = await setupAll(contracts, contracts);
-  wasmCodeIds = chainInfo.wasmCodeIds;
-  osmoCodeIds = chainInfo.wasmCodeIds;
+  const chainInfo = await uploadAndInstantiateAll(contracts, contracts);
+  wasmContractInfos = chainInfo.wasmContractInfos;
+  osmoContractInfos = chainInfo.osmoContractInfos;
+  wasmClient = chainInfo.wasmClient;
+  osmoClient = chainInfo.osmoClient;
+
+  channelInfo = await createIbcConnectionAndChannel(
+    chainInfo.wasmClient,
+    chainInfo.osmoClient,
+    chainInfo.wasmContractInfos["ping"].address,
+    chainInfo.osmoContractInfos["ping"].address,
+    Order.ORDER_UNORDERED,
+    "ping-1"
+  );
 
   t.pass();
 });
 
-//Test that we init contracts correctly.
-test.serial("set up channel with ping contract", async (t) => {
-  // instantiate ping on wasmd
-  const wasmClient = await setupWasmClient();
-  const initPing = {};
-  const { contractAddress: wasmContractAddress } =
-    await wasmClient.sign.instantiate(
-      wasmClient.senderAddress,
-      wasmCodeIds.ping,
-      initPing,
-      "simple ping",
-      "auto"
-    );
-  t.truthy(wasmContractAddress);
-  const { ibcPortId: wasmContractIbcPortId } =
-    await wasmClient.sign.getContract(wasmContractAddress);
-  t.log(`Wasm ping Port: ${wasmContractIbcPortId}`);
-  assert(wasmContractIbcPortId);
-
-  // instantiate ping on osmosis
-  const osmoClient = await setupOsmosisClient();
-  const { contractAddress: osmoContractAddress } =
-    await osmoClient.sign.instantiate(
-      osmoClient.senderAddress,
-      osmoCodeIds.ping,
-      initPing,
-      "simple ping",
-      "auto"
-    );
-  t.truthy(osmoContractAddress);
-  const { ibcPortId: osmoContractIbcPortId } =
-    await osmoClient.sign.getContract(osmoContractAddress);
-  t.log(`Osmo ping Port: ${osmoContractIbcPortId}`);
-  assert(osmoContractIbcPortId);
-
-  const [src, dest] = await setup(wasmd, osmosis);
-  const link = await Link.createWithNewConnections(src, dest);
-  await link.createChannel(
-    "A",
-    wasmContractIbcPortId,
-    osmoContractIbcPortId,
-    IbcOrder,
-    IbcVersion
-  );
-});
-
-//A setup function to init the contracts for tests.
-async function demoSetup(): Promise<SetupInfo> {
-  // instantiate ping on wasmd
-  const wasmClient = await setupWasmClient();
-  const initPing = {};
-  const { contractAddress: wasmContractAddress } =
-    await wasmClient.sign.instantiate(
-      wasmClient.senderAddress,
-      wasmCodeIds.ping,
-      initPing,
-      "simple ping",
-      "auto"
-    );
-  const { ibcPortId: wasmContractIbcPortId } =
-    await wasmClient.sign.getContract(wasmContractAddress);
-  assert(wasmContractIbcPortId);
-
-  // instantiate ping on osmosis
-  const osmoClient = await setupOsmosisClient();
-
-  const { contractAddress: osmoContractAddress } =
-    await osmoClient.sign.instantiate(
-      osmoClient.senderAddress,
-      osmoCodeIds.ping,
-      initPing,
-      "simple ping",
-      "auto"
-    );
-  const { ibcPortId: osmoContractIbcPortId } =
-    await osmoClient.sign.getContract(osmoContractAddress);
-  assert(osmoContractIbcPortId);
-
-  // create a connection and channel
-  const [src, dest] = await setup(wasmd, osmosis);
-  const link = await Link.createWithNewConnections(src, dest);
-  await link.createChannel(
-    "A",
-    wasmContractIbcPortId,
-    osmoContractIbcPortId,
-    IbcOrder,
-    IbcVersion
-  );
-
-  // You Can create more channels on the same connection.
-
-  // also create a ics20 channel on this connection
-  // const ics20Info = await link.createChannel(
-  //   "A",
-  //   wasmd.ics20Port,
-  //   osmosis.ics20Port,
-  //   Order.ORDER_UNORDERED,
-  //   "ics20-1"
-  // );
-  // const ics20 = {
-  //   wasm: ics20Info.src.channelId,
-  //   osmo: ics20Info.dest.channelId,
-  // };
-
-  return {
-    wasmClient,
-    osmoClient,
-    wasmContractAddress,
-    osmoContractAddress,
-    link,
-  };
-}
-
 test.serial("ping the remote chain", async (t) => {
-  const {
-    wasmClient,
-    wasmContractAddress,
-    osmoClient,
-    osmoContractAddress,
-    link,
-  } = await demoSetup();
-
   // If init should send a packet to other chain, don't forget to relay it.
   // let info = await link.relayAll();
   // assertPacketsFromA(info, 1, true);
@@ -169,9 +62,11 @@ test.serial("ping the remote chain", async (t) => {
     return cosmwasm.sign.queryContractSmart(contractAddr, query);
   }
 
+  const wasmContractAddress = wasmContractInfos.ping.address;
   const wasmConnections = (
     await showConnections(wasmClient, wasmContractAddress)
   ).connections;
+  const osmoContractAddress = osmoContractInfos.ping.address;
   const osmoConnections = (
     await showConnections(osmoClient, osmoContractAddress)
   ).connections;
@@ -194,7 +89,7 @@ test.serial("ping the remote chain", async (t) => {
   await executeContract(wasmClient, wasmContractAddress, msg);
 
   //relay
-  const info = await link.relayAll();
+  const info = await channelInfo.link.relayAll();
 
   //Verify we got a success
   assertAckSuccess(info.acksFromB);

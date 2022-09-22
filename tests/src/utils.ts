@@ -7,9 +7,12 @@ import {
   RelayInfo,
   testutils,
 } from "@confio/relayer";
+import { ChannelPair } from "@confio/relayer/build/lib/link";
 import { fromBase64, fromUtf8 } from "@cosmjs/encoding";
 import { assert } from "@cosmjs/utils";
 import { Order } from "cosmjs-types/ibc/core/channel/v1/channel";
+
+import { instantiateContract } from "./controller";
 
 const {
   fundAccount,
@@ -17,75 +20,111 @@ const {
   osmosis: oldOsmo,
   signingCosmWasmClient,
   wasmd,
+  setup,
 } = testutils;
 
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
-export const IbcVersion = "ping-1";
-export const IbcOrder = Order.ORDER_UNORDERED;
+export interface ContractMsg {
+  path: string;
+  instantiateMsg: Record<string, unknown>;
+}
 
 export interface ChainInfo {
   wasmClient: CosmWasmSigner;
   osmoClient: CosmWasmSigner;
-  wasmCodeIds: Record<string, number>;
-  osmoCodeIds: Record<string, number>;
+  wasmContractInfos: Record<string, ContractInfo>;
+  osmoContractInfos: Record<string, ContractInfo>;
 }
 
-//This is the setupInfo we pass, to make sure we don't forget any data we need.
-export interface SetupInfo {
-  wasmClient: CosmWasmSigner;
-  osmoClient: CosmWasmSigner;
-  wasmContractAddress: string;
-  osmoContractAddress: string;
+export interface ContractInfo {
+  codeId: number;
+  address: string;
+}
+
+export interface ChannelInfo {
+  channel: ChannelPair;
   link: Link;
 }
 
-export async function setupAll(
-  wasmContracts: Record<string, string>,
-  osmoContracts: Record<string, string>
+export async function uploadAndInstantiateAll(
+  wasmContracts: Record<string, ContractMsg>,
+  osmoContracts: Record<string, ContractMsg>
 ): Promise<ChainInfo> {
-  console.debug("Upload contract to wasmd...");
   const wasmClient = await setupWasmClient();
-  const wasmCodeIds = await setupContracts(wasmClient, wasmContracts);
+  const wasmContractInfos = await uploadAndInstantiate(
+    wasmClient,
+    wasmContracts
+  );
 
-  console.debug("Upload contract to osmosis...");
   const osmoClient = await setupOsmosisClient();
-  const osmoCodeIds = await setupContracts(osmoClient, osmoContracts);
+  const osmoContractInfos = await uploadAndInstantiate(
+    osmoClient,
+    osmoContracts
+  );
   return {
     wasmClient,
     osmoClient,
-    wasmCodeIds,
-    osmoCodeIds,
+    wasmContractInfos,
+    osmoContractInfos,
   };
 }
-/**
- * Stores contracts (wasm files) into chain and returns contracts containing code ids.
- *
- * @param cosmwasm
- * @param contracts key-value pair where key is contract and value path to wasm file
- * @returns a key-value pair where key is contract and value contains code id
- */
-export async function setupContracts(
-  cosmwasm: CosmWasmSigner,
-  contracts: Record<string, string>
-): Promise<Record<string, number>> {
-  const results: Record<string, number> = {};
 
+export async function uploadAndInstantiate(
+  client: CosmWasmSigner,
+  contracts: Record<string, ContractMsg>
+): Promise<Record<string, ContractInfo>> {
+  console.debug("Upload contract to wasmd...");
+  const contractInfos: Record<string, ContractInfo> = {};
   for (const name in contracts) {
-    const path = contracts[name];
-    console.info(`Storing ${name} from ${path}...`);
-    const wasm = await readFileSync(path);
-    const receipt = await cosmwasm.sign.upload(
-      cosmwasm.senderAddress,
+    const contractMsg = contracts[name];
+    console.info(`Storing ${name} from ${contractMsg.path}...`);
+    const wasm = await readFileSync(contractMsg.path);
+    const receipt = await client.sign.upload(
+      client.senderAddress,
       wasm,
       "auto", // auto fee
       `Upload ${name}` // memo
     );
+    const codeId = receipt.codeId;
     console.debug(`Uploaded ${name} with CodeID: ${receipt.codeId}`);
-    results[name] = receipt.codeId;
+    const { contractAddress: address } = await instantiateContract(
+      client,
+      codeId,
+      contractMsg.instantiateMsg,
+      "simple ping"
+    );
+    contractInfos[name] = { codeId, address };
   }
+  return contractInfos;
+}
 
-  return results;
+export async function createIbcConnectionAndChannel(
+  wasmClient: CosmWasmSigner,
+  osmoClient: CosmWasmSigner,
+  wasmContractAddress: string,
+  osmoContractAddress: string,
+  ordering: Order,
+  version: string
+): Promise<ChannelInfo> {
+  const { ibcPortId: wasmContractIbcPortId } =
+    await wasmClient.sign.getContract(wasmContractAddress);
+  assert(wasmContractIbcPortId);
+  const { ibcPortId: osmoContractIbcPortId } =
+    await osmoClient.sign.getContract(osmoContractAddress);
+  assert(osmoContractIbcPortId);
+  // create a connection and channel
+  const [src, dest] = await setup(wasmd, osmosis);
+  const link = await Link.createWithNewConnections(src, dest);
+  const channel = await link.createChannel(
+    "A",
+    wasmContractIbcPortId,
+    osmoContractIbcPortId,
+    ordering,
+    version
+  );
+
+  return { channel, link };
 }
 
 /**
