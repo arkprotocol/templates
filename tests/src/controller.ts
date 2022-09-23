@@ -15,7 +15,6 @@ export async function instantiateContract(
     label,
     "auto"
   );
-  console.debug(`Wasm contract address: ${result.contractAddress}`);
   assert(result.contractAddress);
   return result;
 }
