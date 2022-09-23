@@ -87,6 +87,7 @@ export async function uploadAndInstantiate(
       `Upload ${name}` // memo
     );
     const codeId = receipt.codeId;
+    assert(codeId);
     console.debug(`Uploaded ${name} with CodeID: ${receipt.codeId}`);
     const { contractAddress: address } = await instantiateContract(
       client,
@@ -94,6 +95,7 @@ export async function uploadAndInstantiate(
       contractMsg.instantiateMsg,
       "simple ping"
     );
+    assert(address);
     contractInfos[name] = { codeId, address };
   }
   return contractInfos;
