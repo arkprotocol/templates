@@ -61,12 +61,14 @@ export async function uploadAndInstantiateAll(
   osmoMnemonic = RELAYER_MNEMONIC
 ): Promise<ChainInfo> {
   const wasmClient = await setupWasmClient(wasmMnemonic);
+  console.debug("###### Upload contract to wasmd");
   const wasmContractInfos = await uploadAndInstantiate(
     wasmClient,
     wasmContracts
   );
 
   const osmoClient = await setupOsmosisClient(osmoMnemonic);
+  console.debug("###### Upload contract to osmo");
   const osmoContractInfos = await uploadAndInstantiate(
     osmoClient,
     osmoContracts
@@ -83,11 +85,10 @@ export async function uploadAndInstantiate(
   client: CosmWasmSigner,
   contracts: Record<string, ContractMsg>
 ): Promise<Record<string, ContractInfo>> {
-  console.debug("Upload contract to wasmd...");
   const contractInfos: Record<string, ContractInfo> = {};
   for (const name in contracts) {
     const contractMsg = contracts[name];
-    console.info(`Storing ${name} from ${contractMsg.path}...`);
+    console.info(`- storing: ${name} from ${contractMsg.path}`);
     const wasm = await readFileSync(contractMsg.path);
     const receipt = await client.sign.upload(
       client.senderAddress,
@@ -97,7 +98,7 @@ export async function uploadAndInstantiate(
     );
     const codeId = receipt.codeId;
     assert(codeId);
-    console.debug(`Uploaded ${name} with CodeID: ${receipt.codeId}`);
+    console.debug(`- code id: ${receipt.codeId}`);
     const { contractAddress: address } = await instantiateContract(
       client,
       codeId,
