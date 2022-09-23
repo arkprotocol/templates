@@ -102,6 +102,65 @@ Scripts defined in package.json can be run like `npm run build:test`. These are 
 
 In many cases your work on integration tests and do not build wasm files all the time. So the minimal and fastest would be using `npm run build:test;npm run test:unit`
 
+### Integration Tests
+
+For integration tests the following might be useful:
+
+utils.ts:
+
+- uploadAndInstantiateAll(): returns ChainInfo with these props:
+  - wasmClient
+  - osmoCLient
+  - wasmContractInfos: a record of contracts with code id and contract address
+  - osmoContractInfos: a record of contracts with code id and contract address
+
+- createIbcConnectionAndChannel(wasmClient, osmoClient, wasmContractAddress, osmoContractAddress, ordering, version): create an IBC channel for between 2 contracts on different chains
+
+Here is a code snippet for uploading, instantiating contracts and creating IBC channel between 2 contracts:
+
+```typescript
+let wasmContractInfos: Record<string, ContractInfo> = {};
+let osmoContractInfos: Record<string, ContractInfo> = {};
+let wasmClient: CosmWasmSigner;
+let osmoClient: CosmWasmSigner;
+let channelInfo: ChannelInfo;
+
+const WASM_FILE = "./internal/ibc_dispatcher.wasm";
+
+//Upload contracts to chains.
+test.before(async (t) => {
+  const contracts: Record<string, ContractMsg> = {
+    contract1: {
+      path: WASM_FILE,
+      instantiateMsg: {},
+    },
+  };
+  const chainInfo = await uploadAndInstantiateAll(contracts, contracts);
+  wasmContractInfos = chainInfo.wasmContractInfos;
+  osmoContractInfos = chainInfo.osmoContractInfos;
+  wasmClient = chainInfo.wasmClient;
+  osmoClient = chainInfo.osmoClient;
+
+  channelInfo = await createIbcConnectionAndChannel(
+    chainInfo.wasmClient,
+    chainInfo.osmoClient,
+    chainInfo.wasmContractInfos["contract1"].address,
+    chainInfo.osmoContractInfos["contract1"].address,
+    Order.ORDER_UNORDERED,
+    "ping-1"
+  );
+
+  t.pass();
+});
+
+```
+
+In controller.ts there is also:
+
+- instantiateContract(client, codeId, msg, label)
+- executeContract(client, contractAddr)
+- getIbcPortId(client, contractAddress, msg)
+
 
 # Contracts
 
