@@ -32,12 +32,12 @@ export async function getIbcPortId(
 
 export function executeContract(
   client: CosmWasmSigner,
-  contractAddr: string,
+  contractAddress: string,
   msg: Record<string, unknown>
 ): Promise<ExecuteResult> {
   return client.sign.execute(
     client.senderAddress,
-    contractAddr,
+    contractAddress,
     msg,
     "auto", // fee
     undefined, // no memo
