@@ -88,7 +88,7 @@ export async function uploadAndInstantiate(
   const contractInfos: Record<string, ContractInfo> = {};
   for (const name in contracts) {
     const contractMsg = contracts[name];
-    console.info(`- storing: ${name} from ${contractMsg.path}`);
+    console.info(`storing ${name} contract from ${contractMsg.path}`);
     const wasm = await readFileSync(contractMsg.path);
     const receipt = await client.sign.upload(
       client.senderAddress,
@@ -103,8 +103,9 @@ export async function uploadAndInstantiate(
       client,
       codeId,
       contractMsg.instantiateMsg,
-      "simple ping"
+      "label " + name
     );
+    console.debug(`- contract address: ${address}`);
     assert(address);
     contractInfos[name] = { codeId, address };
   }
@@ -171,13 +172,16 @@ export async function setupOsmosisClient(
 
 // throws error if not all are success
 export function assertAckSuccess(acks: AckWithMetadata[]) {
-  for (const ack of acks) {
-    const parsed = JSON.parse(fromUtf8(ack.acknowledgement));
+  const parsedAcks = acks.map((ack) =>
+    JSON.parse(fromUtf8(ack.acknowledgement))
+  );
+  console.debug(`Parsing acks: ${JSON.stringify(parsedAcks)}`);
+  for (const parsed of parsedAcks) {
     if (parsed.error) {
       throw new Error(`Unexpected error in ack: ${parsed.error}`);
     }
     if (!parsed.result) {
-      throw new Error(`Ack result unexpectedly empty`);
+      throw new Error(`Ack result unexpectedly empty: ${parsed}`);
     }
   }
 }
