@@ -100,6 +100,8 @@ Scripts defined in package.json can be run like `npm run build:test`. These are 
 - `test`: calls build:test and all scripts starting with test:*
 - `test:unit`: runs unit tests (all files ending with *.spec.ts)
 
+Ava is used for unit tests. For command line options read here: https://github.com/avajs/ava/blob/main/docs/05-command-line.md
+
 In many cases your work on integration tests and do not build wasm files all the time. So the minimal and fastest would be using `npm run build:test;npm run test:unit`
 
 ### Integration Tests

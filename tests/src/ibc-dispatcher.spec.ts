@@ -122,5 +122,5 @@ test.serial("ping the remote chain", async (t) => {
   ).count;
 
   t.is(osmoCounter, 0);
-  t.log(`Wasm counter: ${osmoCounter}`);
+  t.log(`Osmo counter: ${osmoCounter}`);
 });
