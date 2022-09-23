@@ -25,6 +25,13 @@ const {
 
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
+export const RELAYER_MNEMONIC =
+  "harsh adult scrub stadium solution impulse company agree tomorrow poem dirt innocent coyote slight nice digital scissors cool pact person item moon double wagon";
+export const WASM_RELAYER_WALLET =
+  "wasm1ll3s59aawh0qydpz2q3xmqf6pwzmj24t8l43cp";
+export const OSMO_RELAYER_WALLET =
+  "osmo1ll3s59aawh0qydpz2q3xmqf6pwzmj24t9ch58c";
+
 export interface ContractMsg {
   path: string;
   instantiateMsg: Record<string, unknown>;
@@ -49,15 +56,17 @@ export interface ChannelInfo {
 
 export async function uploadAndInstantiateAll(
   wasmContracts: Record<string, ContractMsg>,
-  osmoContracts: Record<string, ContractMsg>
+  osmoContracts: Record<string, ContractMsg>,
+  wasmMnemonic = RELAYER_MNEMONIC,
+  osmoMnemonic = RELAYER_MNEMONIC
 ): Promise<ChainInfo> {
-  const wasmClient = await setupWasmClient();
+  const wasmClient = await setupWasmClient(wasmMnemonic);
   const wasmContractInfos = await uploadAndInstantiate(
     wasmClient,
     wasmContracts
   );
 
-  const osmoClient = await setupOsmosisClient();
+  const osmoClient = await setupOsmosisClient(osmoMnemonic);
   const osmoContractInfos = await uploadAndInstantiate(
     osmoClient,
     osmoContracts
