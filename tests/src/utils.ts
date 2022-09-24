@@ -130,31 +130,31 @@ export async function createIbcConnectionAndChannel(
   const logger: Logger = {
     debug(message: string, meta?: Record<string, unknown>): Logger {
       const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
-      console.debug(logMsg);
+      console.debug("[relayer|debug]: " + logMsg);
       return this;
     },
 
     info(message: string, meta?: Record<string, unknown>): Logger {
       const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
-      console.info(logMsg);
+      console.info("[relayer|info]: " + logMsg);
       return this;
     },
 
     error(message: string, meta?: Record<string, unknown>): Logger {
       const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
-      console.error(logMsg);
+      console.error("[relayer|error]: " + logMsg);
       return this;
     },
 
     warn(message: string, meta?: Record<string, unknown>): Logger {
       const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
-      console.warn(logMsg);
+      console.warn("[relayer|warn]: " + logMsg);
       return this;
     },
 
     verbose(message: string, meta?: Record<string, unknown>): Logger {
       const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
-      console.info("VERBOSE: " + logMsg);
+      console.info("[relayer|verbose]: " + logMsg);
       return this;
     }
   };
