@@ -34,8 +34,8 @@ test.before(async (t) => {
     cw721: {
       path: WASM_FILE_CW721,
       instantiateMsg: {
-        name: 'Ark NFT Multichain',
-        symbol: 'ArkAlpha',
+        name: 'ark',
+        symbol: 'ark',
         minter: wasmClientAddress,
       },
     },
@@ -68,7 +68,7 @@ test.before(async (t) => {
 });
 
 test.serial('transfer NFT', async (t) => {
-  const token_id = '0001';
+  const token_id = '1';
   await mint(wasmClient, wasmContractAddressCw721, token_id, wasmClientAddress, undefined);
   // assert token is minted
   let tokenOwner = await ownerOf(wasmClient, wasmContractAddressCw721, token_id);
