@@ -25,16 +25,12 @@ const {
 
 const osmosis = { ...oldOsmo, minFee: "0.025uosmo" };
 
-export const RELAYER_MNEMONIC =
+export const MNEMONIC =
   "harsh adult scrub stadium solution impulse company agree tomorrow poem dirt innocent coyote slight nice digital scissors cool pact person item moon double wagon";
-export const WASM_RELAYER_WALLET =
-  "wasm1ll3s59aawh0qydpz2q3xmqf6pwzmj24t8l43cp";
-export const OSMO_RELAYER_WALLET =
-  "osmo1ll3s59aawh0qydpz2q3xmqf6pwzmj24t9ch58c";
 
 export interface ContractMsg {
   path: string;
-  instantiateMsg: Record<string, unknown>;
+  instantiateMsg: Record<string, unknown> | undefined;
 }
 
 export interface ChainInfo {
@@ -46,7 +42,7 @@ export interface ChainInfo {
 
 export interface ContractInfo {
   codeId: number;
-  address: string;
+  address: string | undefined;
 }
 
 export interface ChannelInfo {
@@ -55,19 +51,17 @@ export interface ChannelInfo {
 }
 
 export async function uploadAndInstantiateAll(
+  wasmClient: CosmWasmSigner,
+  osmoClient: CosmWasmSigner,
   wasmContracts: Record<string, ContractMsg>,
-  osmoContracts: Record<string, ContractMsg>,
-  wasmMnemonic = RELAYER_MNEMONIC,
-  osmoMnemonic = RELAYER_MNEMONIC
+  osmoContracts: Record<string, ContractMsg>
 ): Promise<ChainInfo> {
-  const wasmClient = await setupWasmClient(wasmMnemonic);
   console.debug("###### Upload contract to wasmd");
   const wasmContractInfos = await uploadAndInstantiate(
     wasmClient,
     wasmContracts
   );
 
-  const osmoClient = await setupOsmosisClient(osmoMnemonic);
   console.debug("###### Upload contract to osmo");
   const osmoContractInfos = await uploadAndInstantiate(
     osmoClient,
@@ -99,14 +93,18 @@ export async function uploadAndInstantiate(
     const codeId = receipt.codeId;
     assert(codeId);
     console.debug(`- code id: ${receipt.codeId}`);
-    const { contractAddress: address } = await instantiateContract(
-      client,
-      codeId,
-      contractMsg.instantiateMsg,
-      "label " + name
-    );
-    console.debug(`- contract address: ${address}`);
-    assert(address);
+    let address;
+    if (contractMsg.instantiateMsg) {
+      const { contractAddress } = await instantiateContract(
+        client,
+        codeId,
+        contractMsg.instantiateMsg,
+        "label " + name
+      );
+      console.debug(`- contract address: ${contractAddress}`);
+      assert(contractAddress);
+      address = contractAddress;
+    }
     contractInfos[name] = { codeId, address };
   }
   return contractInfos;

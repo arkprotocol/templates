@@ -7,40 +7,49 @@ import { executeContract } from "./controller";
 import {
   assertAckSuccess,
   ChannelInfo,
-  ContractInfo,
   ContractMsg,
   createIbcConnectionAndChannel,
+  MNEMONIC,
   parseAcknowledgementSuccess,
+  setupOsmosisClient,
+  setupWasmClient,
   uploadAndInstantiateAll,
 } from "./utils";
 
-let wasmContractInfos: Record<string, ContractInfo> = {};
-let osmoContractInfos: Record<string, ContractInfo> = {};
 let wasmClient: CosmWasmSigner;
 let osmoClient: CosmWasmSigner;
+
+let wasmContractAddress: string;
+let osmoContractAddress: string;
+
 let channelInfo: ChannelInfo;
 
 const WASM_FILE = "./internal/ibc_dispatcher.wasm";
 
 //Upload contracts to chains.
 test.before(async (t) => {
+  wasmClient = await setupWasmClient(MNEMONIC);
+  osmoClient = await setupOsmosisClient(MNEMONIC);
   const contracts: Record<string, ContractMsg> = {
     contract1: {
       path: WASM_FILE,
       instantiateMsg: {},
     },
   };
-  const chainInfo = await uploadAndInstantiateAll(contracts, contracts);
-  wasmContractInfos = chainInfo.wasmContractInfos;
-  osmoContractInfos = chainInfo.osmoContractInfos;
-  wasmClient = chainInfo.wasmClient;
-  osmoClient = chainInfo.osmoClient;
+  const chainInfo = await uploadAndInstantiateAll(
+    wasmClient,
+    osmoClient,
+    contracts,
+    contracts
+  );
+  wasmContractAddress = chainInfo.wasmContractInfos.contract1.address as string;
+  osmoContractAddress = chainInfo.osmoContractInfos.contract1.address as string;
 
   channelInfo = await createIbcConnectionAndChannel(
     chainInfo.wasmClient,
     chainInfo.osmoClient,
-    chainInfo.wasmContractInfos["contract1"].address,
-    chainInfo.osmoContractInfos["contract1"].address,
+    wasmContractAddress,
+    osmoContractAddress,
     Order.ORDER_UNORDERED,
     "ping-1"
   );
@@ -62,11 +71,9 @@ test.serial("ping the remote chain", async (t) => {
     return cosmwasm.sign.queryContractSmart(contractAddr, query);
   }
 
-  const wasmContractAddress = wasmContractInfos.contract1.address;
   const wasmConnections = (
     await showConnections(wasmClient, wasmContractAddress)
   ).connections;
-  const osmoContractAddress = osmoContractInfos.contract1.address;
   const osmoConnections = (
     await showConnections(osmoClient, osmoContractAddress)
   ).connections;

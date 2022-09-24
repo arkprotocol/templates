@@ -84,9 +84,6 @@ export function allNftInfo(
       include_expired,
     },
   };
-  console.log(
-    `all nft info on contract ${cw721Contract} with token ${token_id}`
-  );
   return client.sign.queryContractSmart(cw721Contract, msg);
 }
 
@@ -105,8 +102,5 @@ export function ownerOf(
       include_expired,
     },
   };
-  console.log(
-    `all nft info on contract ${cw721Contract} with token ${token_id}`
-  );
   return client.sign.queryContractSmart(cw721Contract, msg);
 }
