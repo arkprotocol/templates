@@ -2,7 +2,7 @@ import { CosmWasmSigner } from "@confio/relayer";
 import test from "ava";
 import { Order } from "cosmjs-types/ibc/core/channel/v1/channel";
 
-import { allTokens, mint, ownerOf, transfer } from "./cw721-utils";
+import { mint, ownerOf, transfer } from "./cw721-utils";
 import {
   assertAckSuccess,
   ChannelInfo,
@@ -95,7 +95,7 @@ test.before(async (t) => {
 
 test.serial("transfer NFT", async (t) => {
   const token_id = "0001";
-  const response = await mint(
+  await mint(
     wasmClient,
     wasmContractAddressCw721,
     token_id,
@@ -103,16 +103,6 @@ test.serial("transfer NFT", async (t) => {
     undefined
   );
   // assert token is minted
-  t.is(1, response.logs.length);
-  const allTokensResponse = await allTokens(
-    wasmClient,
-    wasmContractAddressCw721
-  );
-  t.log(`all tokens: ${JSON.stringify(allTokensResponse)}`);
-  t.truthy(allTokensResponse);
-  t.truthy(allTokensResponse.tokens);
-  t.is(1, allTokensResponse.tokens.length);
-  t.is("0001", allTokensResponse.tokens[0]);
   let tokenOwner = await ownerOf(
     wasmClient,
     wasmContractAddressCw721,
@@ -126,10 +116,11 @@ test.serial("transfer NFT", async (t) => {
     timeout: {
       block: {
         revision: 1,
-        height: 1000000, // set as high as possible for avoiding timeout
+        height: 90000, // set as high as possible for avoiding timeout
       },
     },
   };
+  console.log("Transferring to Osmo chain");
   const transferResponse = await transfer(
     wasmClient,
     wasmContractAddressCw721,
@@ -137,11 +128,12 @@ test.serial("transfer NFT", async (t) => {
     ibcMsg,
     token_id
   );
-  t.log(`>>>>transfer response ${JSON.stringify(transferResponse)}`);
+  t.truthy(transferResponse);
 
+  console.log("Start relaying")
   // relay
   const info = await channelInfo.link.relayAll();
-  t.log(`>>>>relayed: ${JSON.stringify(info)}`);
+
   // Verify we got a success
   assertAckSuccess(info.acksFromB);
 
