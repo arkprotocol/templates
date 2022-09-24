@@ -4,6 +4,7 @@ import {
   AckWithMetadata,
   CosmWasmSigner,
   Link,
+  Logger,
   RelayInfo,
   testutils,
 } from "@confio/relayer";
@@ -126,7 +127,38 @@ export async function createIbcConnectionAndChannel(
   assert(osmoContractIbcPortId);
   // create a connection and channel
   const [src, dest] = await setup(wasmd, osmosis);
-  const link = await Link.createWithNewConnections(src, dest);
+  const logger: Logger = {
+    debug(message: string, meta?: Record<string, unknown>): Logger {
+      const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
+      console.debug(logMsg);
+      return this;
+    },
+
+    info(message: string, meta?: Record<string, unknown>): Logger {
+      const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
+      console.info(logMsg);
+      return this;
+    },
+
+    error(message: string, meta?: Record<string, unknown>): Logger {
+      const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
+      console.error(logMsg);
+      return this;
+    },
+
+    warn(message: string, meta?: Record<string, unknown>): Logger {
+      const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
+      console.warn(logMsg);
+      return this;
+    },
+
+    verbose(message: string, meta?: Record<string, unknown>): Logger {
+      const logMsg = meta ? message + ": " + JSON.stringify(meta) : message;
+      console.info("VERBOSE: " + logMsg);
+      return this;
+    }
+  };
+  const link = await Link.createWithNewConnections(src, dest, logger);
   const channel = await link.createChannel(
     "A",
     wasmContractIbcPortId,
