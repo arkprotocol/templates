@@ -18,7 +18,7 @@
     "test": "run-s build:test test:*",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"**/*.{ts,md}\" --list-different",
-    "test:unit": "nyc --silent ava --serial -m 'transfer*'"
+    "test:unit": "nyc --silent ava --serial -m"
   },
   "dependencies": {
     "@confio/relayer": "^0.5.1"
